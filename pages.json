@@ -1,0 +1,278 @@
+{
+	"pages": [
+		// pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/jf/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+				}
+		},
+		
+		{
+			"path": "pages/jf/home/home",
+			"style": {
+				"navigationBarTitleText": "首页"
+				}
+		},
+		{
+			"path": "pages/jf/work/workIndex",
+			"style": {
+				"navigationBarTitleText": "工作台"
+				}
+		},
+		{
+			"path": "pages/jf/rank/rank",
+			"style": {
+				// "navigationBarTitleText": "积分榜"
+				"navigationStyle":"custom",
+				"enablePullDownRefresh":true
+			}
+		}, {
+			"path": "pages/jf/personal/personal",
+			"style": {
+				"navigationBarTitleText": "个人中心"
+			}
+		}, {
+			"path": "pages/jf/like/like",
+			"style": {
+				"navigationBarTitleText": "点赞",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/home/logDetail/homeLogDetails",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/work/log/log",
+			"style": {
+				"navigationBarTitleText": "申请日志",
+				"enablePullDownRefresh":true
+			}
+		},
+		
+		{
+			"path": "pages/jf/work/log/detail/logDetail",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/work/wait/wait",
+			"style": {
+				"navigationBarTitleText": "积分审批",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/work/wait/detail/waitDetail",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/work/from/from",
+			"style": {
+				"navigationBarTitleText": "我发起的",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/work/from/detail/fromDetail",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/work/to/to",
+			"style": {
+				"navigationBarTitleText": "我抄送的",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/work/to/detail/toDetail",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/declare/declare",
+			"style": {
+				"navigationBarTitleText": "积分申报",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/declare/approve/approve",
+			"style": {
+				"navigationBarTitleText": "表单"
+			}
+		},
+		{
+			"path": "pages/jf/market/market",
+			"style": {
+				"navigationBarTitleText": "积分商城",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/market/detail/marketDetail",
+			"style": {
+				"navigationBarTitleText": "商城详情"
+			}
+		},
+		{
+			"path": "pages/jf/market/log/log",
+			"style": {
+				"navigationBarTitleText": "兑换记录",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/publish/publish",
+			"style": {
+				"navigationBarTitleText": "发布任务"
+			}
+		},
+		{
+			"path": "pages/jf/complaint/complaint",
+			"style": {
+				"navigationBarTitleText": "积分申诉",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/complaint/formSubmit/complaintSubmit",
+			"style": {
+				"navigationBarTitleText": "表单"
+			}
+		},
+		{
+			"path": "pages/jf/complaint/detail/complaintDetail",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/award/award",
+			"style": {
+				"navigationBarTitleText": "自由奖励"
+			}
+		},
+		{
+			"path": "pages/jf/leaderAward/leaderAward",
+			"style": {
+				"navigationBarTitleText": "管理奖扣"
+			}
+		},
+		{
+			"path": "pages/jf/leaderAward/log/leaderAwardLog",
+			"style": {
+				"navigationBarTitleText": "奖扣日志",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/leaderAward/detail/leaderAwardLogDetail",
+			"style": {
+				"navigationBarTitleText": "日志详情"
+			}
+		},
+		{
+			"path": "pages/jf/takePublish/takePublish",
+			"style": {
+				"navigationBarTitleText": "悬赏任务",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/publish/daily/daily",
+			"style": {
+				"navigationBarTitleText": "日常任务"
+			}
+		},
+		{
+			"path": "pages/API/request-payment/request-payment",
+			"style": {
+				"navigationBarTitleText": "限时任务"
+			}
+		},
+		{
+			"path": "pages/API/share/share",
+			"style": {
+				"navigationBarTitleText": "挑战任务"
+			}
+		},
+		{
+			"path": "pages/jf/levelTest/levelTest",
+			"style": {
+				"navigationBarTitleText": "水平考核",
+				"enablePullDownRefresh":true
+			}
+		},
+		{
+			"path": "pages/jf/levelTest/levelTestDetail/levelTestDetail",
+			"style": {
+				"navigationBarTitleText": "水平考核"
+			}
+		},
+		{
+			"path": "pages/jf/personal/changeAvatar/changeAvatar",
+			"style": {
+				"navigationBarTitleText": "更换头像"
+			}
+		},
+		{
+			"path": "pages/jf/takePublish/commit/publishCommit",
+			"style": {
+				"navigationBarTitleText": "表单"
+			}
+		}
+		
+		
+		
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "Hello",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8",
+		"backgroundColorTop": "#F4F5F6",
+		"backgroundColorBottom": "#F4F5F6",
+		"mp-alipay": {
+			"titleBarColor": "#FFFFFF"
+		}
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#007AFF",
+		"borderStyle": "black",
+		"backgroundColor": "#F8F8F8",
+		"list": [{
+				"pagePath": "pages/jf/home/home",
+				"iconPath": "static/component.png",
+				"selectedIconPath": "static/componentHL.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/jf/work/workIndex",
+				"iconPath": "static/api.png",
+				"selectedIconPath": "static/apiHL.png",
+				"text": "工作台"
+			}, {
+				"pagePath": "pages/jf/rank/rank",
+				"iconPath": "static/extui.png",
+				"selectedIconPath": "static/extuiHL.png",
+				"text": "积分榜"
+			}, {
+				"pagePath": "pages/jf/personal/personal",
+				"iconPath": "static/template.png",
+				"selectedIconPath": "static/templateHL.png",
+				"text": "个人中心"
+			}
+		]
+	}
+}

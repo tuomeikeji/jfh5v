@@ -1,0 +1,244 @@
+<template>
+    <view class="content">
+        <view class="input-group">
+            <view class="input-row border">
+                <text class="title">账号：</text>
+                <m-input class="m-input" type="tel" clearable focus v-model="phone" placeholder="请输入账号"></m-input>
+            </view>
+            <view class="input-row">
+                <text class="title">密码：</text>
+                <m-input type="password" displayable clearable v-model="password" placeholder="请输入密码"></m-input>
+            </view>
+        </view>
+        <view class="btn-row">
+            <button type="primary" class="primary" @tap="bindLogin">登录</button>
+        </view>
+    </view>
+</template>
+
+<script>
+    import mInput from '@/components/m-input.vue'
+
+    export default {
+        components: {
+            mInput
+        },
+        data() {
+            return {
+                phone: '', 
+                password: '',
+            }
+        },
+		onLoad(){
+			this.autoLogin();
+		},
+        methods: {
+            bindLogin() {
+				var that = this;
+				uni.showLoading({
+					mask:true,
+					title:"登陆中..."
+				})
+                uni.request({
+					url:that.GLOBAL.domain+'/user/login',
+					method:'POST',
+					header:{
+						'content-type':'application/x-www-form-urlencoded'
+					},
+					data:{
+						phone:that.phone,
+						password:that.password
+					},
+					success(res) {
+						console.log('success_/user/login===',res);
+						that.GLOBAL.successHttp(res);
+						if (res.data.code == 0) {
+							var level = res.data.msg.split('=')[0]; 
+							var id = res.data.msg.split('=')[1]; 
+							
+							that.GLOBAL.setUserLevel(level);
+							that.GLOBAL.setUserId(id);
+							
+							uni.setStorage({
+								key:'USERS_KEY',
+								data:{
+									phone:that.phone,
+									password:that.password,
+									level:level,
+									id:id
+								},
+								success() {
+									uni.switchTab({
+										url: '/pages/jf/home/home'
+									});
+								}
+							})
+						} else {
+						  uni.showModal({
+						  	content: res.data.msg,
+						  	showCancel: false,
+						  	confirmText: '确定',
+						  })
+						}
+					},
+					fail(res) {
+						console.log('fail_/user/login===',res)
+						that.GLOBAL.failHttp(res);
+					},
+					complete() {
+						uni.hideLoading();
+					}
+               })
+            },
+			autoLogin(){
+				const _this = this;
+				uni.getStorage({
+					key:'USERS_KEY',
+					success(res) {
+						console.log("getStorage----", res);
+						if(res.data){
+							_this.phone = res.data.phone;
+							_this.password = res.data.password;
+							
+							uni.showLoading({
+								mask:true,
+								title:"登陆中..."
+							})
+							uni.request({
+								url:_this.GLOBAL.domain+'/user/login',
+								method:'POST',
+								header:{
+									'content-type':'application/x-www-form-urlencoded'
+								},
+								data:{
+									phone:res.data.phone,
+									password:res.data.password
+								},
+								success(res) {
+									console.log('autologinSuccess',res)
+									if (res.data.code == 0) {
+										var level = res.data.msg.split('=')[0];
+										var id = res.data.msg.split('=')[1];
+										_this.GLOBAL.setUserLevel(level);
+										_this.GLOBAL.setUserId(id);
+										
+										uni.switchTab({
+											url: '/pages/jf/home/home'
+										});
+									} else {
+									  uni.showModal({
+									  	content: res.data.msg,
+									  	showCancel: false,
+									  	confirmText: '确定',
+									  })
+									}
+								},
+								fail(res) {
+									console.log('loginFail',res)
+									 var content = JSON.stringify(res); 
+									 switch (res.error) {case 13: content = '连接超时'; break; case 12: content = '网络出错'; break; case 19: content = '访问拒绝'; } 
+									 uni.showModal({content: content, confirmText: '确定',showCancel: false,});
+								},
+								complete() {
+									uni.hideLoading();
+								}
+							});
+						}
+					},
+					fail(res){
+						//没有找到storage
+					}
+				})
+			}
+            
+        }
+    }
+</script>
+
+<style>
+    .action-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .action-row navigator {
+        color: #007aff;
+        padding: 0 20upx;
+    }
+
+	.content {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		background-color: #efeff4;
+		padding: 20upx;
+	}
+	.input-group {
+		background-color: #ffffff;
+		margin-top: 40upx;
+		position: relative;
+	}
+	
+	.input-group::before {
+		position: absolute;
+		right: 0;
+		top: 0;
+		left: 0;
+		height: 1upx;
+		content: '';
+		-webkit-transform: scaleY(.5);
+		transform: scaleY(.5);
+		background-color: #c8c7cc;
+	}
+	
+	.input-group::after {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		height: 1upx;
+		content: '';
+		-webkit-transform: scaleY(.5);
+		transform: scaleY(.5);
+		background-color: #c8c7cc;
+	}
+	
+	.input-row {
+		display: flex;
+		flex-direction: row;
+		position: relative;
+	}
+	
+	.input-row .title {
+		width: 20%;
+		height: 50upx;
+		min-height: 50upx;
+		padding: 15upx 0;
+		padding-left: 30upx;
+		line-height: 50upx;
+	}
+	
+	.input-row.border::after {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		left: 15upx;
+		height: 1upx;
+		content: '';
+		-webkit-transform: scaleY(.5);
+		transform: scaleY(.5);
+		background-color: #c8c7cc;
+	}
+	
+	.btn-row {
+		margin-top: 50upx;
+		padding: 20upx;
+	}
+	
+	button.primary {
+		background-color: #0faeff;
+	}
+	
+	
+</style>
