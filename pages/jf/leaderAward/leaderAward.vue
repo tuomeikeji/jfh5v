@@ -1,8 +1,8 @@
 <!-- 工作台::自由奖励 -->
 <template>
-	<view class="uni-page-body">
+	<view class="uni-page-body" style="background-color: #FFFFFF;">
 		<form @submit="formSubmit" class="page-section">
-			<view class="page-section-title"><text class="uni-text-red">*</text>  奖扣标题：</view>
+			<view class="page-section-title"><text class="uni-text-red">*</text>  奖扣标题：<text class="uni-text-small">(标题小于50字)</text></view>
 			<view class="page-section-demo">
 			  <textarea name="title" auto-height="true" maxlength="-1"/>
 			</view>
@@ -46,7 +46,7 @@
 				<text class="name">{{item.userName}}</text>
 			  </view>
 			</view>
-			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl"></chooseUser>
+			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl" :checkedUserItem="checkedUserItem"></chooseUser>
 			<button form-type="submit" type="primary" :loading="loading" :disabled="disabled" class="button-form">提交</button>
 		</form>
 	</view>
@@ -85,6 +85,7 @@
 				// 侧滑栏配置
 				showUserDrawer: false,
 			    checkedUserInfo:[] ,//已选员工信息
+				checkedUserItem:[], //返回给chooseUser组件的已选人员
 				getUsersUrl:'/leader/selectLeaderdepts'
 			}
 		},
@@ -95,49 +96,48 @@
 		methods:{
 			getType(){
 				//获取积分类型
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/rank/selectType',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => { 
+				  }
+				})
+				.then((res)=>{
 					console.log('success_selectType_获取积分类型', res);
 					
-					if (res.statusCode == 200) {
+					if (res.data.code == 0) {
 						this.types = res.data.data
-					}
-				  },
-				  fail: (res) => {
+					} 
+				})
+				.catch((res)=>{
 					console.log('fail_selectType_获取积分类型', res);
-					this.GLOBAL.failHttp(res);
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			getAllPoints(){
 				//获取管理员可用积分
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/leader/leaderManageIntegral',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => { 
+				  }
+				})
+				.then((res)=>{
 					console.log('success_leaderManageIntegral_管理者可用积分', res);
 					this.GLOBAL.successHttp(res);
 					
-					if (res.statusCode == 200) {
+					if (res.data.code == 0) {
 						this.allPoints = res.data.data;
-					}
-				  },
-				  fail: (res) => {
-					console.log('fail_获取审批人', res)
-					var content = JSON.stringify(res); switch (res.error) {case 13: content = '连接超时'; break; case 12: content = '网络出错'; break; case 19: content = '访问拒绝'; } 
-					uni.showModal({content: content, confirmText: '确定',showCancel: false,success() {uni.reLaunch({ url: '/pages/jf/login/login' });}});
-				  }
-				});
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取审批人', res)  
+					this.GLOBAL.failHttp(res);
+				})
 			},
 			radioPointsChange(e) {
 			 	switch (e.detail.value){
@@ -174,15 +174,23 @@
 					return false;
 				}
 				
-				// let reg = /^[0-9]\d*$/;
-				// if(!reg.test(addPoints) || !reg.test(delPoints)) {
-				// 	console.log(reg.test(addPoints),reg.test(delPoints))
-				// 	uni.showModal({
-				// 		content:"奖扣分请输入正整数",
-				// 		showCancel:false
-				// 	});
-				// 	return false;
-				// }
+				if(title>50){
+					uni.showModal({
+						content:"标题大于50字，请重新填写",
+						showCancel:false
+					});
+					return false;
+				}
+				
+				let reg = /^[0-9]\d*$/;
+				if(!reg.test(addPoints)&&delPoints==0 || !reg.test(delPoints)&&addPoints==0) {
+					console.log(reg.test(addPoints),reg.test(delPoints))
+					uni.showModal({
+						content:"奖扣分请输入正整数",
+						showCancel:false
+					});
+					return false;
+				}
 				
 				if(addPoints * usersId.length > that.allPoints){
 					uni.showModal({
@@ -204,30 +212,31 @@
 					mask:true,
 					title:"提交中..."
 				})
-				this.loading = true;
-				this.disabled = true;
+				that.loading = true;
+				that.disabled = true;
 				
-				uni.request({
-				  url: this.GLOBAL.domain + '/free/freeIntegral',
+				that.axios({
+				  url: that.GLOBAL.domain + '/free/freeIntegral',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 						'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: that.$qs.stringify({
 					addIntegral: addPoints,
 					delIntegral: delPoints,
 					spRemark: remark,
 					typeId: typeId,
-					from: [usersId],
+					from: usersId,
 					approvalTitle: title,
 					approvalContent: content,
 					// dateTime:'',
-					// approvalImg:[]
-				  },
-				  success: (res) => {
+					approvalImg:[]
+				  },{arrayFormat: 'repeat'})
+				})
+				.then((res)=>{
 					console.log('success_申请成功----', res);
-					this.GLOBAL.successHttp(res);
+					that.GLOBAL.successHttp(res);
 					if(res.data.code == 0){
 						uni.showModal({
 							content:'提交成功',showCancel: false,
@@ -239,18 +248,27 @@
 						uni.showModal({
 							content:res.data.msg,showCancel: false,
 						})
-					}
+					} 
 					
-				  },
-				  fail: (res) => {
-						console.log('fail_申请失败', res)
-						this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						this.loading = false;
-						this.disabled = false;
-						uni.hideLoading();
-				  }
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					console.log('fail_申请失败', res)
+					that.GLOBAL.failHttp(res);
+					uni.showModal({
+						content:'提交失败，请稍后再试',showCancel: false,
+						success() {
+							uni.navigateBack();
+						}
+					})
+					
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
 				})
 			},
 			showDrawer(){
@@ -260,10 +278,14 @@
 				this.showUserDrawer = !this.showUserDrawer
 			},
 			getUsers(e){
+				this.checkedUserInfo = [];
+				this.checkedUserItem = [];
+				
 				let checkedusers = e;
 				checkedusers.forEach((item) => {
 				  item = JSON.parse(item);
-				  this.checkedUserInfo.push(item)
+				  this.checkedUserInfo.push(item);
+				  this.checkedUserItem.push(item)
 				});
 			}
 		}}

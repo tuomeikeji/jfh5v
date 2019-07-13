@@ -1,6 +1,6 @@
 <!-- 积分申诉::重新提交申请 -->
 <template>
-	<view class="uni-page-body" style="padding-bottom: 60upx;">
+	<view class="uni-page-body" style="background-color: #FFFFFF;">
 		<form @submit="formSubmit" class="page-section">
 			<view class="page-section-title">标题：</view>
 			<view class="page-section-demo">
@@ -26,11 +26,11 @@
 			<view class="page-section-demo">
 			  <textarea auto-height placeholder="输入申诉理由" name="reason" />
 			</view>
-			<hr>
+			<view class="form-line"></view>
 			<view class="select-section">
 				<robby-image-upload v-model="imageData" @delete="deleteImage" @add="addImage" :server-url="serverUrl"></robby-image-upload>
 			</view>
-			<hr>
+			<view class="form-line"></view>
 			<picker @change="changePoints" :value="arrIndexPoints" :range="pointsArray" name="points">
 			  <view class="row">
 				<view class="row-title">申请积分</view>
@@ -38,6 +38,7 @@
 				<image class="row-arrow" src="/static/img/arrowright.png" mode="aspectFill" />
 			  </view>
 			</picker>
+			<view class="form-line"></view>
 			<picker @change="changeApply" :value="arrIndexApply" :range="apply" range-key="userName" name="apply">
 			  <view class="row">
 					<view class="row-title">申请人</view>
@@ -45,6 +46,7 @@
 					<image class="row-arrow" src="/static/img/arrowright.png" mode="aspectFill" />
 			  </view>
 			</picker>
+			<view class="form-line"></view>
 			<picker @change="changeApprover" :value="arrIndexApprover" :range="approver" range-key="userName" name="approver">
 			  <view class="row">
 					<view class="row-title">审批人</view>
@@ -52,6 +54,7 @@
 					<image class="row-arrow" src="/static/img/arrowright.png" mode="aspectFill" />
 			  </view>
 			</picker>
+			<view class="form-line"></view>
 			<picker onChange="changeTo" :value="arrIndexTo " :range="ssuser"  range-key="userName" name="ssuser">
 			  <view class="row">
 					<view class="row-title">申诉人</view>
@@ -59,7 +62,8 @@
 					<image class="row-arrow" src="/static/img/arrowright.png" mode="aspectFill" />
 			  </view>
 			</picker>
-			<view class="select-section">
+			<view class="form-line"></view>
+			<view class="select-section" style="padding-top: 20upx;">
 			  <view class="title">抄送<text class="details">审批通过后，通知抄送人</text></view>
 			  <view class="add-wrapper">
 					<text class="addIcon" @click="showDrawer">+</text>
@@ -70,7 +74,7 @@
 				</view>
 			</view>
 			
-			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl"></chooseUser>
+			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl" :checkedUserItem="checkedUserItem"></chooseUser>
 			
 			<button form-type="submit" type="primary" :loading="loading" :disabled="disabled" class="button-form">提交</button>
 		</form>
@@ -109,6 +113,7 @@
 				showUserDrawer: false,
 				checkedUserInfo:[] ,//已选员工信息
 				getUsersUrl:'/work/declareBehaviorDetail/selectAllDeptUser',
+				checkedUserItem:[],//传回给组件的已选人员
 				
 				//tempImgFiles:[],//图片本地路径
 				upLoadImgFile:[],//上传到图片服务器后返回的图片地址
@@ -147,71 +152,74 @@
 			},
 			getssUser(){
 				//获取申诉人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/complaint/selectComplaintPel',
 				  method: 'GET',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => { 
+				  }
+				})
+				.then((res)=>{
 					console.log('success_selectComplaintPel_获取申诉人', res);
 					
 					if (res.data.code == 0) {
 						this.ssuser.push(res.data.data.user) 
-					}
-				  },
-				  fail: (res) => {
-						console.log('fail__selectComplaintPel_获取申诉人', res);
-						this.GLOBAL.failHttp(res);
-				  }
-				});
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail__selectComplaintPel_获取申诉人', res);
+					this.GLOBAL.failHttp(res);  
+				})
+				
 			},
 			getApprover(){
 				//获取审批人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/declareBehaviorDetail/approverPel',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
-					  console.log('success_获取审批人', res);
-						this.GLOBAL.successHttp(res);
-					
-						if (res.statusCode == 200) {
-							this.approver.push(res.data.data) 
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_获取审批人', res);
-						this.GLOBAL.failHttp(res);
 				  }
-				});
+				})
+				.then((res)=>{
+					console.log('success_获取审批人', res);
+					this.GLOBAL.successHttp(res);
+				
+					if (res.data.code == 0) {
+						this.approver.push(res.data.data) 
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取审批人', res);
+						this.GLOBAL.failHttp(res);  
+				})
+				
 			},
 			getApply(){
 				//获取申请人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/selectSysUser',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
-					  console.log('success_获取申请人', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.statusCode == 200) {
-							this.apply.push(res.data.data);
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_获取申请人', res);
-						this.GLOBAL.failHttp(res);
 				  }
-				});
+				})
+				.then((res)=>{
+					console.log('success_获取申请人', res);
+					this.GLOBAL.successHttp(res);
+					
+					if (res.data.code == 0) {
+						this.apply.push(res.data.data);
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取申请人', res);
+					this.GLOBAL.failHttp(res)  
+				})
+				
 			},
 			
 			changePoints(e) {
@@ -241,6 +249,7 @@
 				var appPelId = that.ssuser[e.detail.value.ssuser].userId //申诉人
 				var approvalId = that.options.approvalId //id
 				var appReason = e.detail.value.reason //申诉理由
+				
 				console.log('appPelId:'+appPelId+',approvalId:'+approvalId+',appReason:'+appReason+',pic:'+[that.upLoadImgFile]+',usersId'+usersId)
 				
 				if(!appReason){
@@ -258,39 +267,43 @@
 				that.loading = true;
 				that.disabled = true;
 				
-				uni.request({
-				  url: this.GLOBAL.domain + '/complaint/addComplaint',
+				that.axios({
+				  url: that.GLOBAL.domain + '/complaint/addComplaint',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
-						'content-type':'application/x-www-form-urlencoded'
+					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
-						approvalId: approvalId,
-						pic: [that.upLoadImgFile],
-						appReason: appReason,
-						appPelId: appPelId,
-						to: [usersId]
-				  },
-				  success: (res) => {
+				  data: this.$qs.stringify({
+					approvalId: approvalId,
+					pic: that.upLoadImgFile,
+					appReason: appReason,
+					appPelId: appPelId,
+					to: usersId
+				  },{arrayFormat: 'repeat'})
+				})
+				
+				.then((res)=>{
 					console.log('success_申请成功----', res);
-					this.GLOBAL.successHttp(res);
+					that.GLOBAL.successHttp(res);
 					uni.showModal({
 						content:'申请成功',confirmText:"确定",showCancel: false,
 						success() {
 							uni.navigateBack();
 						}
-					})
-				  },
-				  fail: (res) => {
-						console.log('fail_申请失败', res)
-						this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						that.loading = false;
-						that.disabled = false;
-						uni.hideLoading();
-				  }
+					}) 
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					console.log('fail_申请失败', res)
+					that.GLOBAL.failHttp(res);  
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
 				})
 			},
 			showChooseImgDrawer(){
@@ -306,10 +319,14 @@
 				this.showUserDrawer = !this.showUserDrawer
 			},
 			getUsers(e){
+				this.checkedUserInfo = [];
+				this.checkedUserItem = [];
+				
 				let checkedusers = e;
 				checkedusers.forEach((item) => {
 				  item = JSON.parse(item);
-				  this.checkedUserInfo.push(item)
+				  this.checkedUserInfo.push(item);
+				  this.checkedUserItem.push(item)
 				});
 			}
 		}

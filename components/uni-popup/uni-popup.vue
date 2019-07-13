@@ -121,11 +121,12 @@
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
+		min-width: 80%;
 	}
 
 	.uni-popup-middle.uni-popup-insert {
-		min-width: 380upx;
-		min-height: 380upx;
+		/* min-width: 380upx;
+		min-height: 380upx; */
 		max-width: 100%;
 		max-height: 80%;
 		transform: translate(-50%, -65%);

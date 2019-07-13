@@ -1,7 +1,7 @@
 {
-    "name" : "uni-app",
+    "name" : "jfh5",
     "appid" : "__UNI__723BEBB",
-    "description" : "应用描述",
+    "description" : "积分助手",
     "versionName" : "1.0.0",
     "versionCode" : "100",
     "transformPx" : true,
@@ -87,18 +87,17 @@
         "usingComponents" : true
     },
     "h5" : {
-        "template" : "template.h5.html",
+        "template" : "",
         "router" : {
             "mode" : "hash",
-            "base" : "/jfh5x/"
+            "base" : "/jfh5v/"
         },
         "sdkConfigs" : {
             "maps" : {}
         },
-        "title" : "jfh5x",
+        "title" : "jfh5v",
         "devServer" : {
             "https" : false
         }
-       
     }
 }

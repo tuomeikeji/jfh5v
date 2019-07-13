@@ -59,40 +59,43 @@
 		methods:{
 			 getList(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/Award/AwardController',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 					pageSize: this.pageSize,
 					pageNum: this.currentPage,
 					userName:this.searchString
-				  },
-				  success: (res) => {
+				  })
+				})
+				
+				.then((res)=>{
 					console.log('success_/work/AwardController_奖扣日志列表----', res);
 					this.GLOBAL.successHttp(res);
 					
-					if (res.statusCode == 200) {
+					if (res.data.code == 0) {
 						console.log("load page 第" + (this.currentPage) +"页");
 						let list = res.data.data.list;
 						this.listData = this.isFirstPage ? list : this.listData.concat(list);
 						this.isFirstPage = false;
 						this.currentPage += 1;
 						this.hasNextPage = res.data.data.hasNextPage
-					}
-				  },
-				  fail: (res) => {
-					console.log('fail_/work/AwardController_奖扣日志列表---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
+					} 
+					
 					uni.hideLoading();
 					uni.stopPullDownRefresh();
-				  }
-				});
+				})
+				.catch((res)=>{
+					console.log('fail_/work/AwardController_奖扣日志列表---', res)
+					this.GLOBAL.failHttp(res);  
+					
+					uni.hideLoading();
+					uni.stopPullDownRefresh();
+				})
 			 },
 			 lower(){
 				 //滑到底端触发的函数

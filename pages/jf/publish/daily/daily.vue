@@ -1,8 +1,8 @@
 <!-- 悬赏任务::日常任务 -->
 <template>
-	<view class="uni-page-body">
+	<view class="uni-page-body" style="background-color: #FFFFFF;">
 		<form @submit="formSubmit" class="page-section">
-			<view class="page-section-title"><text class="uni-text-red">*</text>任务目标：</view>
+			<view class="page-section-title"><text class="uni-text-red">*</text>任务目标：<text class="uni-text-small">(标题不得超过50字)</text></view>
 			<view class="page-section-demo">
 			  <textarea name="title" auto-height="true" maxlength="-1"/>
 			</view>
@@ -45,35 +45,36 @@
 					</block>
 				</view>
 			</view>
-			<view class="form-line"></view>
+			<button form-type="submit" type="primary" :loading="loading" :disabled="disabled" class="button-form">提交</button>
 			<uni-drawer :visible="showDrawer" mode="left" @close="closeDrawer">
-					<uni-segmented-control :current="tabCurrent" :values="tabItems" style-type="text" active-color="#007aff" @clickItem="onClickTabItem" />
+				<uni-segmented-control :current="tabCurrent" :values="tabItems" style-type="text" active-color="#007aff" @clickItem="onClickTabItem" />
+				<form @submit="formSubmitCheckbox" @reset="formResetCheckbox">	
 					<view v-show="tabCurrent === 0">
-						<checkbox-group name="dept" @change="deptChange">
+						<checkbox-group name="dept">
 							<label class="uni-list-cell uni-list-cell-pd" v-for="item in checkbox_Dept" :key="item.deptId">
-									<view>{{item.deptName}}</view>
-									<view>
-										<checkbox :value="JSON.stringify(item)" />
-									</view>
+								<view>{{item.deptName}}</view>
+								<view>
+									<checkbox :value="JSON.stringify(item)" :checked="item.checked"/>
+								</view>
 							</label>
 						</checkbox-group>
 					</view>
 					<view v-show="tabCurrent === 1">
-						<checkbox-group name="sysRoles" @change="rolesChange">
+						<checkbox-group name="sysRoles">
 							<label class="uni-list-cell uni-list-cell-pd" v-for="item in checkbox_sysRoles" :key="item.postId">
 									<view>{{item.postName}}</view>
 									<view>
-										<checkbox :value="JSON.stringify(item)" />
+										<checkbox :value="JSON.stringify(item)" :checked="item.checked"/>
 									</view>
 							</label>
 						</checkbox-group>
 					</view>
-					<view class="page-section-btns">
-						<view class="page-section-btns-cell"><button @click="closeDrawer">返回</button></view>
-						<view class="page-section-btns-cell"><button @click="closeDrawer" type="primary">确定</button></view>
+					<view class="page-section-btns flex-space-between">
+						<view><button @click="closeDrawer" size="mini">返回</button></view>
+						<view><button  type="primary" size="mini" formType='submit'>确定</button></view>
 					</view>
+				</form>
 			</uni-drawer>
-			<button form-type="submit" type="primary" :loading="loading" :disabled="disabled" class="button-form">提交</button>
 		</form>
 	</view>
 </template>
@@ -117,37 +118,38 @@
 		methods:{
 			getAllPoints(){
 				//获取管理员可用积分
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/leader/leaderManageIntegral',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => { 
+				  }
+				})
+				.then((res)=>{
 					console.log('success_leaderManageIntegral_管理者可用积分', res);
 					this.GLOBAL.successHttp(res);
 					
 					if (res.data.code == 0) {
 						this.allPoints = res.data.data;
-					}
-				  },
-				  fail: (res) => {
+					} 
+				})
+				.catch((res)=>{
 					console.log('fail_获取审批人', res);
-					this.GLOBAL.failHttp(res);
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			getDept(){
 				//获取职位，部门，积分类型
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/releaseTask/releaseTaskPage',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => { 
+				  }
+				})
+				.then((res)=>{
 					console.log('success_releaseTaskPage_部门职位', res);
 					this.GLOBAL.successHttp(res);
 					
@@ -155,13 +157,12 @@
 						this.types = res.data.data.its; //积分类型
 						this.checkbox_sysRoles = res.data.data.posts; //职位名称
 						this.checkbox_Dept = res.data.data.depts; //部门
-					}
-				  },
-				  fail: (res) => {
-						console.log('fail_releaseTaskPage_部门职位', res);
-						this.GLOBAL.failHttp(res);
-				  }
-				});
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_releaseTaskPage_部门职位', res);
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			formSubmit: function(e) {
 				console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value));
@@ -180,6 +181,13 @@
 					return false;
 				}
 				
+				if(title.length > 50){
+					uni.showModal({
+						content:"标题超过50字",
+						showCancel:false
+					});
+					return false;
+				}
 				
 				let reg = /^[0-9]\d*$/;
 				if(!reg.test(addPoints)) {
@@ -198,7 +206,7 @@
 					return false;
 				}
 				
-				if(that.checkedDeptIds.length < 0 && that.checkedRoleIds.length < 0){
+				if(that.checkedDeptIds.length <= 0 || that.checkedRoleIds.length <= 0){
 					uni.showModal({
 						content:"请选择接受此项任务的部门及职位",
 						showCancel:false
@@ -215,50 +223,54 @@
 				that.loading = true;
 				that.disabled = true;
 				
-				uni.request({
+				that.axios({
 				  url: that.GLOBAL.domain + '/releaseTask/saveReleTask',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 						'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 						taskIntegral: addPoints,
 						remark:remark,
 						integralTypeId: typeId,
 						title: title,
 						content: content,
-						taskTypeId: 1, // 任务类型
+						taskTypeId: 1, // 任务类型--日常任务
 						// sort: this.data.date1,
 						// status: this.data.date2,
-						deptId: [that.checkedDeptIds],
-						postId: [that.checkedRoleIds]
-				  },
-				  success: (res) => {
-						console.log('success_申请成功----', res);
-						that.GLOBAL.successHttp(res);
-						if(res.data.code == 0){
-							uni.showModal({
-								content:'提交成功',showCancel: false,
-								success() {
-									uni.navigateBack();
-								}
-							})
-						}else{
-							uni.showModal({
-								content:'提交发生错误，请重新提交',showCancel: false,
-							})
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_申请失败', res)
-						that.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						that.loading = false;
-						that.disabled = false;
-						uni.hideLoading();
-				  }
+						deptId: that.checkedDeptIds,
+						postId: that.checkedRoleIds
+				  },{arrayFormat: 'repeat'})
+				})
+				
+				.then((res)=>{
+					console.log('success_申请成功----', res);
+					that.GLOBAL.successHttp(res);
+					if(res.data.code == 0){
+						uni.showModal({
+							content:'提交成功',showCancel: false,
+							success() {
+								uni.navigateBack();
+							}
+						})
+					}else{
+						uni.showModal({
+							content:'提交发生错误，请重新提交',showCancel: false,
+						})
+					} 
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					console.log('fail_申请失败', res)
+					that.GLOBAL.failHttp(res); 
+					 
+					 that.loading = false;
+					 that.disabled = false;
+					 uni.hideLoading();
 				})
 				
 			},
@@ -273,32 +285,46 @@
 					this.tabCurrent = index
 				}
 			},
-			deptChange(e){
-				console.log('dept发生变化,选职位',e.detail.value);
-				let deptValue = e.detail.value;
-				let checkedArr = [];
-				let ids = [];
-				deptValue.forEach((item) => {
-					checkedArr.push(JSON.parse(item));
-					ids.push(JSON.parse(item).deptId);
-				});
-				this.checkedDeptItem = checkedArr;
-				this.checkedDeptIds = ids;
+			formSubmitCheckbox(e){
+				console.log('formSubmitCheckbox选择部门，职位 携带值为:',e.detail.value);
 				
-				console.log('部门id',ids)
-			},
-			rolesChange(e){
-				console.log('roles发生变化,选职位',e.detail.value);
-				let rolesValue = e.detail.value;
-				let checkedArr = [];
-				let ids = [];
-				rolesValue.forEach((item) => {
-					checkedArr.push(JSON.parse(item));
-					ids.push(JSON.parse(item).postId);
+				let deptCheckedArr = []; //已选部门组合
+				let deptIds = [];
+				let rolesCheckedArr = []; //已选职位组合
+				let rolesIds = [];
+				
+				e.detail.value.dept.forEach((item) => {
+					deptCheckedArr.push(JSON.parse(item));
+					deptIds.push(JSON.parse(item).deptId);
 				});
-				this.checkedRoleItem = checkedArr;
-				this.checkedRoleIds = ids;
-				console.log('职位id',ids)
+				
+				e.detail.value.sysRoles.forEach((item) => {
+					rolesCheckedArr.push(JSON.parse(item));
+					rolesIds.push(JSON.parse(item).postId);
+				});
+				
+				this.checkedDeptItem = deptCheckedArr;
+				this.checkedDeptIds = deptIds;
+				this.checkedRoleItem = rolesCheckedArr;
+				this.checkedRoleIds = rolesIds;
+				
+				//提交表单后，保持选中状态
+				this.checkbox_Dept.forEach((item) => {
+					if (this.checkedDeptIds.some((toItem) => toItem == item.deptId)) {
+						item.checked = true
+					} else {
+						item.checked = false
+					}	
+				});
+				this.checkbox_sysRoles.forEach((item) => {
+					if (this.checkedRoleIds.some((toItem) => toItem == item.postId)) {
+						item.checked = true
+					} else {
+						item.checked = false
+					}	
+				});
+				
+				this.showDrawer = false
 			},
 		}}
 </script>
@@ -309,6 +335,10 @@
 		bottom: 0;
 		display: flex;
 		width: 100%;
+		box-sizing: border-box;
+		-webkit-box-sizing: border-box;
+		border-top: 1px solid #DDDDDD;
+		padding: 20upx 24upx;
 	}
 	.page-section-btns-cell{
 		flex: 1;

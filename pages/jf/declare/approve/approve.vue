@@ -1,13 +1,13 @@
 <!-- 积分申诉::表单提交 -->
 <template>
-	<view class="uni-page-body">
+	<view class="uni-page-body" style="background-color: #fff;">
 		<form @submit="formSubmit" class="page-section">
-			<view class="page-section-title">审批标题</view>
+			<view class="page-section-title">审批标题：</view>
 			<view class="page-section-demo">
 			  <textarea name="title" auto-height="true" maxlength="-1" :value="options.title" disabled="true"/>
 			</view>
 			<view class="form-line"></view>
-			<view class="page-section-title">审批内容</view>
+			<view class="page-section-title">审批内容：</view>
 			<view class="page-section-demo">
 			  <textarea name="content" auto-height="true" maxlength="-1" :value="options.content" disabled="true"/>
 			</view>
@@ -23,7 +23,7 @@
 			</view>
 			<view class="form-line"></view>
 			<view>
-					<robby-image-upload v-model="imageData" @delete="deleteImage" @add="addImage" :server-url="serverUrl"></robby-image-upload>
+				<robby-image-upload v-model="imageData" @delete="deleteImage" @add="addImage" :server-url="serverUrl"></robby-image-upload>
 			</view>
 			<view class="form-line"></view>
 			<picker @change="changePoints" :value="arrIndexPoints" :range="pointsArray" name="points">
@@ -50,17 +50,17 @@
 			  </view>
 			</picker>
 			<view class="form-line"></view>
-			<view class="select-section">
+			<view class="select-section" style="padding: 26upx 22upx;">
 			  <view class="title">抄送<text class="details">审批通过后，通知抄送人</text></view>
 			  <view class="add-wrapper">
-						<text class="addIcon" @click="showDrawer">+</text>
+					<text class="addIcon" @click="showDrawer">+</text>
 			  </view>
-				 <view class="add-wrapper" v-for="(item,index) in checkedUserInfo">
-						<image class="addIcon" :src="item.avatar ? item.avatar : '/static/img/default_user_icon.png'"></image>
-						<text class="name">{{item.userName}}</text>
+				 <view class="add-wrapper" v-for="(item,index) in checkedUserInfo" :key="index">
+					<image class="addIcon" :src="item.avatar ? item.avatar : '/static/img/default_user_icon.png'"></image>
+					<text class="name">{{item.userName}}</text>
 				</view>
 			</view>
-			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl"></chooseUser>
+			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl" :checkedUserItem="checkedUserItem"></chooseUser>
 			<button form-type="submit" type="primary" :loading="loading" :disabled="disabled" class="button-form">提交</button>
 		</form>
 	</view>
@@ -92,7 +92,7 @@
 				showUserDrawer: false,
 				checkedUserInfo:[],//抄送人信息
 				getUsersUrl:'/work/declareBehaviorDetail/selectAllDeptUser', //获取同部门可抄送人
-				//outCheckedUsers:[],//传回给组件中的值
+				checkedUserItem:[], //传回给组件的已选人员
 				
 				//tempImgFiles:[],//图片本地路径
 				upLoadImgFile:[],//上传到图片服务器后返回的图片地址
@@ -131,16 +131,18 @@
 			},
 			getUsers(e){
 				//获取选中的抄送人
-				console.log('选中的抄送人:',e)
+				this.checkedUserInfo = [];
+				this.checkedUserItem = [];
+				
 				let checkedusers = e;
 				checkedusers.forEach((item) => {
 				  item = JSON.parse(item);
 				  this.checkedUserInfo.push(item);
-				  // this.outCheckedUsers.push(item)
+				  this.checkedUserItem.push(item)
 				});
 			},
 			deleteImage: function(e){
-					console.log(e)
+				console.log(e)
 			},
 			addImage: function(e){
 					console.log('addImage==',e);
@@ -148,54 +150,56 @@
 					for (var i = 0; i < e.allImages.length; i++) {
 						uploadUrls.push(JSON.parse(e.allImages[i]).data) 
 					}
+					// this.upLoadImgFile = uploadUrls;
 					this.upLoadImgFile = uploadUrls;
 					console.log('页面upLoadImgFiles',this.upLoadImgFile);
 			},
 			getApprover(){
 				//获取审批人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/declareBehaviorDetail/approverPel',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  success: (res) => { 
-					  console.log('success_获取审批人', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.statusCode == 200) {
-							this.approver.push(res.data.data) 
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_获取审批人', res);
-						this.GLOBAL.failHttp(res);
-				  }
-				});
+				})
+				.then((res)=>{
+					console.log('success_获取审批人', res);
+					this.GLOBAL.successHttp(res);
+					
+					if (res.data.code == 0) {
+						this.approver.push(res.data.data) 
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取审批人', res);
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			getApply(){
 				//获取申请人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/selectSysUser',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
-					  console.log('success_获取申请人', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.statusCode == 200) {
-							this.apply.push(res.data.data);
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_获取申请人', res);
-						this.GLOBAL.failHttp(res);
 				  }
-				});
+				})
+				.then((res)=>{
+					console.log('success_获取申请人', res);
+					this.GLOBAL.successHttp(res);
+					
+					if (res.data.code == 0) {
+						this.apply.push(res.data.data);
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取申请人', res);
+					this.GLOBAL.failHttp(res);  
+				})
+				
 			},
 			changePoints(e) {
 				console.log('picker发送选择改变，携带值为', e.detail.value);
@@ -222,58 +226,73 @@
 				var points = that.pointsArray[e.detail.value.points] //分数
 				var remark = e.detail.value.remark //备注
 				var typeId = that.options.type //积分类型
-				var apply = that.apply[e.detail.value.apply].userId //申请人
+				
+				var apply = [];
+				apply.push(that.apply[e.detail.value.apply].userId); //申请人
+				
 				var copy = [] //抄送人
-				this.checkedUserInfo.forEach((item) => {
+				that.checkedUserInfo.forEach((item) => {
 				  copy.push(item.userId)
 				}) 
-				var approver = that.approver[e.detail.value.approver].userId //审核人
+				
+				var approver = [];
+				approver.push(that.approver[e.detail.value.approver].userId) //审核人
+				
 				var approvalTitle = that.options.title //标题
 				var approvalContent = that.options.content //内容
 				var approvalId = that.options.id //id
-				console.log('addIntegral:'+points+',approvalImg:'+that.upLoadImgFile+',spRemark:'+remark+',typeId:'+typeId+',from:'+apply+',to:'+copy+',apps:'+approver)
 				
-				this.loading = true;
-				this.disabled = true;
-				
-				uni.request({
-				  url: this.GLOBAL.domain + '/work/addIntegralApprover',
+				console.log('表单最后传递数据：'+'addIntegral:'+points+',approvalImg:'+JSON.stringify(that.upLoadImgFile)+',spRemark:'+remark+',typeId:'+typeId+',from:'+JSON.stringify(apply)+',to:'+JSON.stringify(copy)+',apps:'+JSON.stringify(approver))
+
+				that.axios({
+				  url: that.GLOBAL.domain + '/work/addIntegralApprover',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
-						'content-type':'application/x-www-form-urlencoded'
+					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data:  that.$qs.stringify({
 						addIntegral: points,
-						approvalImg: that.upLoadImgFile,
+						approvalImg: JSON.stringify(that.upLoadImgFile),
 						spRemark: remark,
 						typeId: typeId,
-						from: [apply],
-						to: [copy],
-						apps: [approver],
+						from: JSON.stringify(apply),
+						to: JSON.stringify(copy),
+						apps: JSON.stringify(approver),
 						approvalTitle: approvalTitle,
 						approvalContent: approvalContent,
 						approvalId: approvalId
-				  },
-				  success: (res) => {
-						console.log('success_申请成功----', res);
-						this.GLOBAL.successHttp(res);
-						uni.showModal({
-							content:'申请成功',confirmText:"确定",showCancel: false,
-							success() {
-								uni.navigateBack();
-							}
-						})
-				  },
-				  fail: (res) => {
-						console.log('fail_申请失败', res)
-						this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						that.loading = false;
-						that.disabled = false;
-						uni.hideLoading();
-				  }
+				  })
+				  // ,{arrayFormat: 'repeat'}
+				  //传递数组时不推荐使用JSON.stringify()方式，建议使用,{arrayFormat: 'repeat'}方法，参考award自由奖励页面
+				})
+				.then((res)=>{
+					console.log('success_申请成功----', res);
+					that.GLOBAL.successHttp(res);
+					uni.showModal({
+						content:'申请成功',confirmText:"确定",showCancel: false,
+						success() {
+							uni.navigateBack();
+						}
+					}) 
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					console.log('fail_申请失败', res)
+					that.GLOBAL.failHttp(res);  
+					
+					uni.showModal({
+						content:'申请失败，请稍后再试',confirmText:"确定",showCancel: false,
+						success() {
+							uni.navigateBack();
+						}
+					}) 
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
 				})
 			},
 		}

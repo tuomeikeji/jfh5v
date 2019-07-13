@@ -1,5 +1,6 @@
 <template>
-    <view class="content">
+    <view class="content" :style="'height:'+winH+'px;'">
+		<h2>积分平台</h2>
         <view class="input-group">
             <view class="input-row border">
                 <text class="title">账号：</text>
@@ -27,10 +28,12 @@
             return {
                 phone: '', 
                 password: '',
+				winH:''
             }
         },
-		onLoad(){
+		onShow(){
 			this.autoLogin();
+			this.getSystemInfoPage()
 		},
         methods: {
             bindLogin() {
@@ -39,56 +42,55 @@
 					mask:true,
 					title:"登陆中..."
 				})
-                uni.request({
+                that.axios({
 					url:that.GLOBAL.domain+'/user/login',
 					method:'POST',
 					header:{
 						'content-type':'application/x-www-form-urlencoded'
 					},
-					data:{
+					data:that.$qs.stringify({
 						phone:that.phone,
 						password:that.password
-					},
-					success(res) {
-						console.log('success_/user/login===',res);
-						that.GLOBAL.successHttp(res);
-						if (res.data.code == 0) {
-							var level = res.data.msg.split('=')[0]; 
-							var id = res.data.msg.split('=')[1]; 
-							
-							that.GLOBAL.setUserLevel(level);
-							that.GLOBAL.setUserId(id);
-							
-							uni.setStorage({
-								key:'USERS_KEY',
-								data:{
-									phone:that.phone,
-									password:that.password,
-									level:level,
-									id:id
-								},
-								success() {
-									uni.switchTab({
-										url: '/pages/jf/home/home'
-									});
-								}
-							})
-						} else {
-						  uni.showModal({
-						  	content: res.data.msg,
-						  	showCancel: false,
-						  	confirmText: '确定',
-						  })
-						}
-					},
-					fail(res) {
-						console.log('fail_/user/login===',res)
-						that.GLOBAL.failHttp(res);
-					},
-					complete() {
-						uni.hideLoading();
-					}
-               })
+					})
+				})
+				.then((res)=>{
+					 console.log('success_/user/login===',res);
+					 that.GLOBAL.successHttp(res);
+					 if (res.data.code == 0) {
+						var level = res.data.msg.split('=')[0]; 
+						var id = res.data.msg.split('=')[1]; 
+						
+						that.GLOBAL.setUserLevel(level);
+						that.GLOBAL.setUserId(id);
+						
+						uni.setStorage({
+							key:'USERS_KEY',
+							data:{
+								phone:that.phone,
+								password:that.password,
+								level:level,
+								id:id
+							},
+							success() {
+								uni.switchTab({
+									url: '/pages/jf/home/home'
+								});
+							}
+						})
+					 } else {
+					   uni.showModal({
+						content: res.data.msg,
+						showCancel: false,
+						confirmText: '确定',
+					   })
+					 }
+					 
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					 console.log('fail_/user/login===',res)
+					 that.GLOBAL.failHttp(res); 
+				})
             },
 			autoLogin(){
 				const _this = this;
@@ -104,59 +106,83 @@
 								mask:true,
 								title:"登陆中..."
 							})
-							uni.request({
+							_this.axios({
 								url:_this.GLOBAL.domain+'/user/login',
 								method:'POST',
 								header:{
 									'content-type':'application/x-www-form-urlencoded'
 								},
-								data:{
-									phone:res.data.phone,
-									password:res.data.password
-								},
-								success(res) {
-									console.log('autologinSuccess',res)
-									if (res.data.code == 0) {
-										var level = res.data.msg.split('=')[0];
-										var id = res.data.msg.split('=')[1];
-										_this.GLOBAL.setUserLevel(level);
-										_this.GLOBAL.setUserId(id);
-										
-										uni.switchTab({
-											url: '/pages/jf/home/home'
-										});
-									} else {
-									  uni.showModal({
-									  	content: res.data.msg,
-									  	showCancel: false,
-									  	confirmText: '确定',
-									  })
-									}
-								},
-								fail(res) {
-									console.log('loginFail',res)
-									 var content = JSON.stringify(res); 
-									 switch (res.error) {case 13: content = '连接超时'; break; case 12: content = '网络出错'; break; case 19: content = '访问拒绝'; } 
-									 uni.showModal({content: content, confirmText: '确定',showCancel: false,});
-								},
-								complete() {
-									uni.hideLoading();
-								}
-							});
+								data:_this.$qs.stringify({
+									phone:_this.phone,
+									password:_this.password
+								})
+							})
+							.then((res)=>{
+								 console.log('success_/user/login===',res);
+								 _this.GLOBAL.successHttp(res);
+								 if (res.data.code == 0) {
+									var level = res.data.msg.split('=')[0]; 
+									var id = res.data.msg.split('=')[1]; 
+									
+									_this.GLOBAL.setUserLevel(level);
+									_this.GLOBAL.setUserId(id);
+									
+									uni.setStorage({
+										key:'USERS_KEY',
+										data:{
+											phone:_this.phone,
+											password:_this.password,
+											level:level,
+											id:id
+										},
+										success() {
+											uni.switchTab({
+												url: '/pages/jf/home/home'
+											});
+										}
+									})
+								 } else {
+								   uni.showModal({
+									content: res.data.msg,
+									showCancel: false,
+									confirmText: '确定',
+								   })
+								 }
+								 
+								uni.hideLoading();
+							})
+							.catch((res)=>{
+								 console.log('fail_/user/login===',res)
+								 _this.GLOBAL.failHttp(res); 
+							})
 						}
 					},
 					fail(res){
 						//没有找到storage
 					}
 				})
-			}
-            
+			},
+            getSystemInfoPage() {
+            	uni.getSystemInfo({
+            	  success: (res) => {
+            		this.winH=res.windowHeight
+            	  }
+            	})
+            }
         }
     }
 </script>
 
 <style>
-    .action-row {
+	h2{
+		font-size: 75upx;
+		text-align: center;
+		/* font-weight:500; */
+		color:#4D96F5;
+		/* color:#333; */
+		padding-top:120upx;
+	}
+    /* .action-row {
         display: flex;
         flex-direction: row;
         justify-content: center;
@@ -165,32 +191,22 @@
     .action-row navigator {
         color: #007aff;
         padding: 0 20upx;
-    }
+    } */
 
 	.content {
 		display: flex;
 		flex: 1;
 		flex-direction: column;
-		background-color: #efeff4;
-		padding: 20upx;
+		background-color: #FFFFFF;
+		padding:20upx 30upx;
 	}
 	.input-group {
 		background-color: #ffffff;
-		margin-top: 40upx;
+		margin-top: 100upx;
 		position: relative;
 	}
 	
-	.input-group::before {
-		position: absolute;
-		right: 0;
-		top: 0;
-		left: 0;
-		height: 1upx;
-		content: '';
-		-webkit-transform: scaleY(.5);
-		transform: scaleY(.5);
-		background-color: #c8c7cc;
-	}
+	
 	
 	.input-group::after {
 		position: absolute;
@@ -212,11 +228,12 @@
 	
 	.input-row .title {
 		width: 20%;
-		height: 50upx;
-		min-height: 50upx;
-		padding: 15upx 0;
+		/* height: 50upx; */
+		/* min-height: 50upx; */
+		padding: 30upx 0;
 		padding-left: 30upx;
-		line-height: 50upx;
+		font-size: 30upx;
+		/* line-height: 50upx; */
 	}
 	
 	.input-row.border::after {
@@ -237,8 +254,7 @@
 	}
 	
 	button.primary {
-		background-color: #0faeff;
+		margin-top: 30upx;
+		background-color: #4D96F5;
 	}
-	
-	
 </style>

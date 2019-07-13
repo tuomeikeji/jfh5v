@@ -1,6 +1,6 @@
 <!-- 日志详情模板 -->
 <template>
-	<view class="uni-page-body">
+	<view class="uni-page-body" style="background-color: #fff;">
 		<view class="top">
 			<image class="avatar" :src="data.userImg ? data.userImg : '/static/img/default_user_icon.png'" />
 			<text class="name">{{data.userName}}</text>
@@ -34,11 +34,11 @@
 			</view>
 			<view class="item" v-if="!data.kIntegral">
 			  <text class="item-left">申请积分：</text>
-			  <text class="item-right">{{data.addIntegral}}分</text>
+			  <text class="item-right">+{{data.addIntegral}}分</text>
 			</view>
 			<view class="item" v-else>
-			  <text class="item-left">扣除积分：</text>
-			  <text class="item-right">{{data.kIntegral}}</text>
+			  <text class="item-left" style="color: #DD4F43;">扣除积分：</text>
+			  <text class="item-right" style="color: #DD4F43;">-{{data.kIntegral}}分</text>
 			</view>
 			<view class="item">
 			  <text class="item-left">备注：</text>
@@ -86,7 +86,7 @@
 		
 		<uni-popup :show="showRejectBox" position="middle" mode="fixed" @hidePopup="togglePopup">
 			<form @submit="formSubmit">
-				<view class="page-section-title">填写拒绝理由</view>
+				<view class="page-section-title">填写拒绝理由:</view>
 				<view class="page-section-demo">
 					<textarea name="rejectTxt" maxlength="-1" focus="true"/>
 				</view>
@@ -95,7 +95,7 @@
 					  <button size="mini" @click="togglePopup">返 回</button>
 					</view>
 					<view>
-					  <button formType="submit" type="primary" class="button-form" size="mini">确 定</button>
+					  <button formType="submit" type="primary" size="mini">确 定</button>
 					</view>
 				</view>
 			</form>
@@ -153,33 +153,34 @@
 				let that = this;
 				uni.showLoading({title: '加载中...'});
 				let approvalId = this.options.approvalId;
-				uni.request({
+				this.axios({
 				  url: that.GLOBAL.domain + '/approversPel/selectApproversDetail/' + approvalId,
 				  method: 'GET',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					this.GLOBAL.successHttp(res);
 					console.log('success_/ApproversDetail/_日志详情', res);
 					 var step = []
-					  if (res.data.data.integralTypeId == 4) {
-								step.push({
-									title: `${res.data.data.appName}  管理奖扣`,
-									desc: `${res.data.data.appDept}  ${res.data.data.sqTime}`
-								});
+					if (res.data.data.integralTypeId == 4) {
+							step.push({
+								title: `${res.data.data.appName}  管理奖扣`,
+								desc: `${res.data.data.appDept}  ${res.data.data.sqTime}`
+							});
 						
-					  } else if (res.data.data.integralTypeId == 6) {
-								step.push({
-									title: `${res.data.data.appName}  点赞`,
-									desc: `${res.data.data.appDept}  ${res.data.data.sqTime}`
-								});
-					  } else {
-								step.push({
-									title: `${res.data.data.userName}  提交审批`,
-									desc: `${res.data.data.userDept}  ${res.data.data.sqTime}`
-								})
+					} else if (res.data.data.integralTypeId == 6) {
+							step.push({
+								title: `${res.data.data.appName}  点赞`,
+								desc: `${res.data.data.appDept}  ${res.data.data.sqTime}`
+							});
+					} else {
+							step.push({
+								title: `${res.data.data.userName}  提交审批`,
+								desc: `${res.data.data.userDept}  ${res.data.data.sqTime}`
+							})
 						
 							if (res.data.data.status == 1) {
 								step.push({
@@ -203,19 +204,30 @@
 								this.failIconShow = true;
 								this.activeColor='#ff0000';
 							}
+					}
+					console.log('iiiiii===',res.data.data.approvalImg)
+					var imgs = res.data.data.approvalImg;
+					imgs.forEach((item) => {
+					  if(item.indexOf("[") != -1){
+						  //"申报积分"模块中与后台传输数据 对数组做了特殊处理 所以"申报积分"传过来的图片有问题
+						  console.log('特殊图片====');
+						  item = JSON.parse(item)[0]
 					  }
-						this.step = step;
-						this.data = res.data.data; 
-						this.appReason = res.data.data.appReason;
-				  },
-				  fail: (res) => {
-						console.log('fail_/ApproversDetail_日志详情---', res);
-						this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						uni.hideLoading();
-				  }
-				});
+					})
+					console.log('kkkkkk转换后===',res.data.data.approvalImg)
+					
+					this.step = step;
+					this.data = res.data.data; 
+					this.appReason = res.data.data.appReason; 
+					
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					console.log('fail_/ApproversDetail_日志详情---', res);
+					this.GLOBAL.failHttp(res);
+					  
+					uni.hideLoading();
+				})
 			},
 			preview(index){
 				console.log('图片',index);
@@ -235,50 +247,53 @@
 				var appReason = this.appReason;
 				//var failString = encodeURI(encodeURI(this.data.failString)) ????
 				//var appReason = encodeURI(encodeURI(this.data.appReason))
-				
-				var url = this.GLOBAL.domain + '/approversPel/approversYesNo/' + approvalId + '/' + passStatus 
+				console.log('最后提交数据：','failString:',this.failString,'appReason:',this.appReason,'passStatus:',passStatus)
 				
 				this.disabled = true;
 				uni.showLoading({
 					title: '审批中...',
 					mask:true
 				});
-				uni.request({
+				var url = this.GLOBAL.domain + '/approversPel/approversYesNo/' + approvalId + '/' + passStatus 
+				this.axios({
 				  url: url,
 				  method: 'GET',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data:{
+				  data:this.$qs.stringify({
 					  approvalId:approvalId,
 					  status:passStatus,
 					  disapproveUndo:failString,
 					  appReason:appReason
-				  },
-				  success: (res) => {
-						this.GLOBAL.successHttp(res);
-						console.log('success_approversYesNo_审核通过/拒绝----', res);
-						if(res.data.code == 0){
-							uni.showModal({
-								content: '审批成功',
-								showCancel:false,
-								success(){
-									uni.navigateBack();
-								}
-							});
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_approversYesNo_审核通过/拒绝---', res);
-						this.GLOBAL.failHttp(res);
-					},
-				  complete: () => {
-						uni.hideLoading();
-						this.showRejectBox = false;
-						this.disabled = false;
-				  }
-				});
+				  })
+				})
+				.then((res)=>{
+				  	this.GLOBAL.successHttp(res);
+					console.log('success_approversYesNo_审核通过/拒绝----', res);
+					if(res.data.code == 0){
+						uni.showModal({
+							content: '审批成功',
+							showCancel:false,
+							success(){
+								uni.navigateBack();
+							}
+						});
+					} 
+					
+					uni.hideLoading();
+					this.showRejectBox = false;
+					this.disabled = false;
+				})
+				.catch((res)=>{
+				  	console.log('fail_approversYesNo_审核通过/拒绝---', res);
+					this.GLOBAL.failHttp(res);  
+					
+					uni.hideLoading();
+					this.showRejectBox = false;
+					this.disabled = false;
+				})
 			},
 			todoPass(){
 				//审核人 同意普通员工的申请
@@ -288,15 +303,16 @@
 			todoStop(){
 				//审核人 拒绝普通员工的申请
 				var _this = this;
-				uni.request({
+				_this.axios({
 					//获取拒绝理由数据
 				  url: _this.GLOBAL.domain + '/complaint/groundsRefusal',
 				  method: 'GET',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success(res) {
+				  }
+				})
+				.then((res)=>{
 					console.log("success_groundsRefusal_拒绝理由",res);
 				  	_this.GLOBAL.successHttp(res);
 					
@@ -320,13 +336,12 @@
 								_this.showRejectBox = true;
 							}
 						}
-					})	
-				  },
-				  fail(res){
-					  console.log("fail_groundsRefusal_拒绝理由",res)
-					  _this.GLOBAL.failHttp(res);
-				  }
-				});
+					}) 
+				})
+				.catch((res)=>{
+					console.log("fail_groundsRefusal_拒绝理由",res)
+					_this.GLOBAL.failHttp(res);  
+				})
 			},
 			fromBack(){
 				//申请撤销
@@ -344,33 +359,39 @@
 							that.loading = true;
 							that.disabled = true;
 							
-							uni.request({
+							// console.log('==========',appId)
+							that.axios({
 							  url: that.GLOBAL.domain + '/userMenu/selectDelMenu/' + appId,
 							  method: 'GET',
 							  dataType: 'json',
 							  header:{
 								'content-type':'application/x-www-form-urlencoded'
 							  },
-							  success: (res) => {
-									that.GLOBAL.successHttp(res);
-									console.log('success_/userMenu/selectDelMenu/申请撤销----', res);
-									
-									uni.showModal({
-										content:"撤销成功",
-										success(){
-											uni.navigateBack()
-										}
-									})
-							  },
-							  fail: (res) => {
-										console.log('fail_/userMenu/selectDelMenu/申请撤销---', res);
-										that.GLOBAL.failHttp(res);
-								},
-							  complete: () => {
-									uni.hideLoading();
-									that.disabled = false;
-							  }
-							});
+							  data:that.$qs.stringify({
+								approvalId:appId  
+							  })
+							})
+							.then((res)=>{
+								that.GLOBAL.successHttp(res);
+								console.log('success_/userMenu/selectDelMenu/申请撤销----', res);
+								
+								uni.showModal({
+									content:"撤销成功",
+									success(){
+										uni.navigateBack()
+									}
+								}) 
+								
+								uni.hideLoading();
+								that.disabled = false;
+							})
+							.catch((res)=>{
+								console.log('fail_/userMenu/selectDelMenu/申请撤销---', res);
+								that.GLOBAL.failHttp(res); 
+								 
+								uni.hideLoading();
+								that.disabled = false;
+							})
 						}
 					}
 				})

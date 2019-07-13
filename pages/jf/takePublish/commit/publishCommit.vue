@@ -1,6 +1,6 @@
 <!-- 接受发布任务 -->
 <template>
-	<view class="uni-page-body">
+	<view class="uni-page-body" style="background-color: #FFFFFF;">
 		<form @submit="formSubmit" class="page-section">
 			<view class="page-section-title">审批标题:</view>
 			<view class="page-section-demo">
@@ -53,14 +53,14 @@
 			<view class="select-section">
 			  <view class="title">抄送<text class="details">审批通过后，通知抄送人</text></view>
 			  <view class="add-wrapper">
-						<text class="addIcon" @click="showDrawer">+</text>
+					<text class="addIcon" @click="showDrawer">+</text>
 			  </view>
 				 <view class="add-wrapper" v-for="(item,index) in checkedUserInfo">
-						<image class="addIcon" :src="item.avatar ? item.avatar : '/static/img/default_user_icon.png'"></image>
-						<text class="name">{{item.userName}}</text>
+					<image class="addIcon" :src="item.avatar ? item.avatar : '/static/img/default_user_icon.png'"></image>
+					<text class="name">{{item.userName}}</text>
 				</view>
 			</view>
-			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl"></chooseUser>
+			<chooseUser :showDrawerFlag="showUserDrawer" @toggleUserDrawer="toggleDrawer" @getUsers="getUsers" :getUsersUrl="getUsersUrl" :checkedUserItem="checkedUserItem"></chooseUser>
 			<button form-type="submit" type="primary" :loading="loading" :disabled="disabled" class="button-form">提交</button>
 		</form>
 	</view>
@@ -92,7 +92,7 @@
 				showUserDrawer: false,
 				checkedUserInfo:[],//抄送人信息
 				getUsersUrl:'/work/declareBehaviorDetail/selectAllDeptUser', //获取同部门可抄送人
-				//outCheckedUsers:[],//传回给组件中的值
+				checkedUserItem:[],//传回给chooseUsers组件中的值
 				
 				//tempImgFiles:[],//图片本地路径
 				upLoadImgFile:[],//上传到图片服务器后返回的图片地址
@@ -116,7 +116,7 @@
 			this.getApprover();
 			
 			
-			// uni.request({
+			// this.axios({
 			// 	//根据id获取此项目详情
 			//   url: this.GLOBAL.domain + '/task/selectDetails/'+ options.id,
 			//   method: 'GET',
@@ -143,72 +143,75 @@
 				this.showUserDrawer = !this.showUserDrawer
 			},
 			getUsers(e){
-				//获取选中的抄送人
-				console.log('选中的抄送人:',e)
+				//与 抄送人 公共组件交互
+				this.checkedUserInfo = [];
+				this.checkedUserItem = [];
+				
 				let checkedusers = e;
 				checkedusers.forEach((item) => {
 				  item = JSON.parse(item);
 				  this.checkedUserInfo.push(item);
-				  // this.outCheckedUsers.push(item)
+				  this.checkedUserItem.push(item)
 				});
 			},
 			deleteImage: function(e){
 					console.log(e)
 			},
 			addImage: function(e){
-					console.log('addImage==',e);
-					var uploadUrls = [];
-					for (var i = 0; i < e.allImages.length; i++) {
-						uploadUrls.push(JSON.parse(e.allImages[i]).data) 
-					}
-					this.upLoadImgFile = uploadUrls;
-					console.log('页面upLoadImgFiles',this.upLoadImgFile);
+				console.log('addImage==',e);
+				var uploadUrls = [];
+				for (var i = 0; i < e.allImages.length; i++) {
+					uploadUrls.push(JSON.parse(e.allImages[i]).data) 
+				}
+				this.upLoadImgFile = uploadUrls;
+				console.log('页面upLoadImgFiles',this.upLoadImgFile);
 			},
 			getApprover(){
 				//获取审批人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/declareBehaviorDetail/approverPel',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => { 
-					  console.log('success_获取审批人', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.statusCode == 200) {
-							this.approver.push(res.data.data) 
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_获取审批人', res);
-						this.GLOBAL.failHttp(res);
 				  }
-				});
+				})
+				
+				.then((res)=>{
+					console.log('success_获取审批人', res);
+					this.GLOBAL.successHttp(res);
+					
+					if (res.data.code == 0) {
+						this.approver.push(res.data.data) 
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取审批人', res);
+						this.GLOBAL.failHttp(res);  
+				})
 			},
 			getApply(){
 				//获取申请人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/selectSysUser',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
-					  console.log('success_获取申请人', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.statusCode == 200) {
-							this.apply.push(res.data.data);
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_获取申请人', res);
-						this.GLOBAL.failHttp(res);
 				  }
-				});
+				})
+				.then((res)=>{
+					console.log('success_获取申请人', res);
+					this.GLOBAL.successHttp(res);
+					
+					if (res.data.code == 0) {
+						this.apply.push(res.data.data);
+					} 
+				})
+				.catch((res)=>{
+					console.log('fail_获取申请人', res);
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			changePoints(e) {
 				console.log('picker发送选择改变，携带值为', e.detail.value);
@@ -232,59 +235,66 @@
 				that.loading = true;
 				that.disabled = true;
 				
-				var points = that.pointsArray[e.detail.value.points] //分数
 				var remark = e.detail.value.remark //备注
-				var typeId = that.options.type //积分类型
-				var apply = that.apply[e.detail.value.apply].userId //申请人
+				
+				var apply = [];
+				apply.push(that.apply[e.detail.value.apply].userId)//申请人
+				
 				var copy = [] //抄送人
-				this.checkedUserInfo.forEach((item) => {
+				that.checkedUserInfo.forEach((item) => {
 				  copy.push(item.userId)
 				}) 
-				var approver = that.approver[e.detail.value.approver].userId //审核人
+				
+				var approver = [];
+				approver.push(that.approver[e.detail.value.approver].userId)  //审核人
+				
 				var approvalTitle = that.options.title //标题
 				var approvalContent = that.options.content //内容
-				var taskId = that.options.id //id
+				var taskId = that.options.rtId //id
 				
-				console.log('addIntegral:'+points+',approvalImg:'+that.upLoadImgFile+',spRemark:'+remark+',typeId:'+typeId+',from:'+apply+',to:'+copy+',apps:'+approver)
+				console.log('提交携带数据：：'+'approvalImg:'+that.upLoadImgFile+',spRemark:'+remark+',from:'+apply+',to:'+copy+',apps:'+approver)
 				
-				this.loading = true;
-				this.disabled = true;
+				that.loading = true;
+				that.disabled = true;
 				
-				uni.request({
-				  url: this.GLOBAL.domain + '/work/addIntegralApprover',
+				that.axios({
+				  url: that.GLOBAL.domain + '/task/addTask',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 						'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: that.$qs.stringify({
 						pic: that.upLoadImgFile,
 						remark: remark,
 						taskTypeId: that.options.taskTypeId,
-						to: [copy],
-						releaseUserId:[approver],
+						to: copy,
+						releaseUserId:approver,
 						taskId: taskId,
 						integralTypeId: 7
-				  },
-				  success: (res) => {
-						console.log('success_申请成功----', res);
-						this.GLOBAL.successHttp(res);
-						uni.showModal({
-							content:'申请成功',confirmText:"确定",showCancel: false,
-							success() {
-								uni.navigateBack();
-							}
-						})
-				  },
-				  fail: (res) => {
-						console.log('fail_申请失败', res)
-						this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						that.loading = false;
-						that.disabled = false;
-						uni.hideLoading();
-				  }
+				  },{arrayFormat: 'repeat'})
+				})
+				.then((res)=>{
+					console.log('success_申请成功----', res);
+					that.GLOBAL.successHttp(res);
+					uni.showModal({
+						content:'申请成功',confirmText:"确定",showCancel: false,
+						success() {
+							uni.navigateBack();
+						}
+					}) 
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
+				})
+				.catch((res)=>{
+					console.log('fail_申请失败', res)
+					this.GLOBAL.failHttp(res);  
+					
+					that.loading = false;
+					that.disabled = false;
+					uni.hideLoading();
 				})
 			},
 		}

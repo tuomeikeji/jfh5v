@@ -1,5 +1,5 @@
 {
-  "name": "jfh5x",
+  "name": "jfh5v",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "uni-request": "^1.0.2",
-    "unifly": "^1.0.2"
+    "axios": "^0.19.0"
   }
 }

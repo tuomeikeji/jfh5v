@@ -1,8 +1,8 @@
 <!-- 动作台::首页 -->
 <template>
 	<view class="page">
-		<view class="topImage">
-			<image :src="topImage" mode="aspectFill" v-if="topImage"/>
+		<view class="topImage" v-show="topImage.length>0">
+			<image :src="topImage" mode="aspectFill" />
 		</view>
 		
 		<view class="content">
@@ -81,98 +81,91 @@
 			},
 			getTopImage(){
 				// 获取顶部banner图
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/home/picture',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 					  location: 1 //location 0:首页，1:工作台，2：积分商城
-				  },
-				  success: (res) => {
+				  })
+				})
+				.then((res)=>{
 					console.log('success_workindexTopImage----', res)
 					this.GLOBAL.successHttp(res);
 					if(res.data.data.list.length > 0){
 						this.topImage = res.data.data.list[0].picUrl
-					}
-					
-				  },
-				  fail: (res) => {
+					} 
+				})
+				.catch((res)=>{
 					console.log('failworkindexTopImage---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-					
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			getCountLogNum(){
 				//获取管理日志模块'我申请的'/'待我审批'/'我发起的'/'我抄送的' 各多少条数量
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/countLogNun',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				
+				.then((res)=>{
 					console.log('success_/work/管理日志----', res);
 					this.GLOBAL.successHttp(res);
 					
-					this.CountLogData = res.data.data;
-				  },
-				  fail: (res) => {
+					this.CountLogData = res.data.data; 
+					
+					uni.hideLoading();
+				})
+				.catch((res)=>{
 					console.log('fail_/work/管理日志---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						uni.hideLoading()
-				  }
-				});
+					this.GLOBAL.failHttp(res); 
+					uni.hideLoading();
+				})
 			},
 			getGridContent(type){
 				// 日常积分项 type=0;管理应用 type=1;
 				var type = type;
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/deskIcon/find',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
-						'content-type':'application/x-www-form-urlencoded'
+					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data:{
+				  data:this.$qs.stringify({
 					  type: type, //type:0 普通员工,type:1 管理者
-				  },
-				  success: (res) => {
-						console.log('success_/deskIcon/find----', res);
-						this.GLOBAL.successHttp(res);
-						 
-						var listMain = [];
-						var lists = res.data.data;
-						
-						for (var i = 0; i < lists.length; i++) {
-							var image = lists[i].yyImg;
-							var text = lists[i].yyTitle;
-							listMain.push({'image':image,'text':text})
-						}
-						if(type == "0"){
-							this.gridListContent_0 = listMain;
-						}else if(type == "1"){
-							this.gridListContent_1 = listMain;
-						}
-							
-				  },
-				  fail: (res) => {
+				  })
+				})
+				.then((res)=>{
+					console.log('success_/deskIcon/find----', res);
+					this.GLOBAL.successHttp(res);
+					 
+					var listMain = [];
+					var lists = res.data.data;
+					
+					for (var i = 0; i < lists.length; i++) {
+						var image = lists[i].yyImg;
+						var text = lists[i].yyTitle;
+						listMain.push({'image':image,'text':text})
+					}
+					if(type == "0"){
+						this.gridListContent_0 = listMain;
+					}else if(type == "1"){
+						this.gridListContent_1 = listMain;
+					} 
+				})
+				.catch((res)=>{
 					console.log('fail_/deskIcon/find---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-						uni.hideLoading()
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			
 			onGridItemClick(e){
@@ -189,7 +182,7 @@
 					uni.navigateTo({ url: '/pages/jf/award/award' })
 					break;
 				  case '积分抽奖':
-					uni.navigateTo({ url: '../luckyDraw/index' })
+					uni.navigateTo({ url: '/pages/jf/luckyDraw/luckyDraw' })
 					break;
 				  case '爱心点赞':
 					uni.navigateTo({ url: '/pages/jf/like/like' })
@@ -201,7 +194,8 @@
 					uni.navigateTo({ url: '/pages/jf/complaint/complaint' })
 					break;
 				  case '水平考核':
-					uni.navigateTo({ url: '/pages/jf/levelTest/levelTest' })
+				  // /pages/jf/levelTest/levelTest
+					uni.navigateTo({ url: '/pages/jf/luckyDraw/luckyDraw' })
 					break;
 				  case '发布任务':
 					uni.navigateTo({ url: '/pages/jf/publish/publish' })

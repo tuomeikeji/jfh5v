@@ -37,12 +37,12 @@
 	.uni-badge {
 		font-family: 'Helvetica Neue', Helvetica, sans-serif;
 		box-sizing: border-box;
-		font-size: 12px;
+		font-size: 24upx;
 		line-height: 1;
 		display: inline-block;
-		padding: 3px 6px;
+		padding: 6upx 12upx;
 		color: #333;
-		border-radius: 100px;
+		border-radius: 200upx;
 		background-color: #f1f1f1
 	}
 

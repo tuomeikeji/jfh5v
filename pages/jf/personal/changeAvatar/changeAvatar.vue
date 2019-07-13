@@ -1,6 +1,6 @@
 <!-- 更换头像 -->
 <template>
-	<view class="uni-page-body">
+	<view class="">
 		<view class="avatar" v-show="showAvatar">
 			<image :src="userAvatar" mode="aspectFill"></image>
 		</view>
@@ -37,26 +37,25 @@
 								that.userAvatar = resData.data;
 								that.showAvatar = true
 								
-								uni.request({
+								that.axios({
 									url:that.GLOBAL.domain+'/personal/Tupian',
 									method: 'POST',
 									dataType: 'json',
 									header:{
 										'content-type':'application/x-www-form-urlencoded'
 									},
-									data:{
+									data:that.$qs.stringify({
 										avatar:that.userAvatar
-									},
-									success(res) {
-										console.log('success_修改头像',res)
-										that.GLOBAL.successHttp(res);
-										
-										uni.showToast({
-											title:'ok'
-										})
-									}
+									})
 								})
-								
+								.then((res)=>{
+									console.log('success_修改头像',res)
+									that.GLOBAL.successHttp(res);
+									
+									uni.showToast({
+										title:'修改成功'
+									}) 
+								})
 							}
 						})
 					}

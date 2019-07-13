@@ -1,15 +1,15 @@
 <!-- 首页 -->
 <template>
-	<view class="uni-page-body">
-	  <view class="topImage">
-		<image :src="topImage" mode="aspectFill" v-if="topImage.length>0"/>
+	<view class="uni-page-body" style="padding-bottom: 0;">
+	  <view class="topImage" v-show="topImage.length>0">
+		<image :src="topImage" mode="aspectFill"/>
 	  </view>
 	  <!-- 跳转到点赞详情 -->
 	  <!-- <uni-list style="margin-top: 20upx;">
 	  	<uni-list-item @click="likeTo" title="查看点赞详情" thumb='../../../static/img/likeIcon.png'/>
 	  </uni-list> -->
 	   <!-- 今日积分排名 -->
-	  	<uni-card title="今日积分排名" thumbnail='/static/img/menu.png'>
+	  	<uni-card title="今日积分排名" thumbnail='/static/img/homeRank.png'>
 			<view class="content-main">
 			  <view class="number">
 				<text class="number-amount">{{rank.rank == null ? '0' : rank.rank}}</text>
@@ -27,8 +27,8 @@
 	  	</uni-card>
 		
 		<!-- 积分动态列表 -->
-		<uni-card title="积分动态">
-			<scroll-view scroll-y="true" @scrolltolower="lower" style="height:800upx;">
+		<uni-card title="积分动态" thumbnail='/static/img/menu.png'>
+			<scroll-view scroll-y="true" @scrolltolower="lower" style="height:960upx;">
 				<view class="uni-list" v-if="listData.length>0">
 				    <block v-for="(item,index) in listData" :key="index">
 				        <view class="uni-list-cell">
@@ -39,10 +39,10 @@
 								<view class="uni-media-list-body">
 									<view class="uni-title">{{item.userName}}
 										<view v-if="item.sqIntegral > 0" class="uni-text-blue">
-											+{{item.sqIntegral}}    {{item.integralTypeId == '1' ? '品德A分' : (item.integralTypeId == '2' ? '业绩B分' : (item.integralTypeId == '3' ? '行为C分' : (item.integralTypeId == '4' ? '管理奖扣分' : (item.integralTypeId == '5' ? '自由奖励扣分' : (item.integralTypeId == '6' ? '点赞分' : (item.integralTypeId == '7' ? '悬赏任务分' : ''))))))}}
+											+{{item.sqIntegral}}    {{item.integralTypeId == '1' ? '品德A分' : (item.integralTypeId == '2' ? '业绩B分' : (item.integralTypeId == '3' ? '行为C分' : (item.integralTypeId == '4' ? '管理奖扣分' : (item.integralTypeId == '5' ? '自由奖励扣分' : (item.integralTypeId == '6' ? '点赞分' : (item.integralTypeId == '7' ? '悬赏任务分' :(item.integralTypeId == '8' ? '积分支票' :(item.integralTypeId == '9' ? '水平考核' :''))))))))}}
 										</view>
 										<view v-else class="uni-text-blue">
-											-{{item.kIntegral}}    {{item.integralTypeId == '1' ? '品德A分' : (item.integralTypeId == '2' ? '业绩B分' : (item.integralTypeId == '3' ? '行为C分' : (item.integralTypeId == '4' ? '管理奖扣分' : (item.integralTypeId == '5' ? '自由奖励扣分' : (item.integralTypeId == '6' ? '点赞分' : (item.integralTypeId == '7' ? '悬赏任务分' : ''))))))}}
+											-{{item.kIntegral}}    {{item.integralTypeId == '1' ? '品德A分' : (item.integralTypeId == '2' ? '业绩B分' : (item.integralTypeId == '3' ? '行为C分' : (item.integralTypeId == '4' ? '管理奖扣分' : (item.integralTypeId == '5' ? '自由奖励扣分' : (item.integralTypeId == '6' ? '点赞分' : (item.integralTypeId == '7' ? '悬赏任务分' : (item.integralTypeId == '8' ? '积分支票' :(item.integralTypeId == '9' ? '水平考核' :''))))))))}}
 										</view>
 									</view> 
 									<view class="uni-text">{{item.approvalTitle}}</view>
@@ -94,97 +94,89 @@
 		 methods:{
 			getTopImage(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain +'/home/picture',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data:this.$qs.stringify({
 					location: 0 //location 0:首页，1:工作台，2：积分商城
-				  },
-				  success: (res) => {
+				  })
+				})
+				.then((res)=>{
 					console.log('success_HomeTopImage----', res);
 					this.GLOBAL.successHttp(res);
 					if(res.data.data.list.length > 0){
 						this.topImage = res.data.data.list[0].picUrl
 					}
-					
-				  },
-				  fail: (res) => {
+					uni.hideLoading();
+				})
+				.catch((res)=>{
 					console.log('failHomeTopImage---', res)
 					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-					uni.hideLoading();
-				  }
-				});
+				})
 			},
 			getRank(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/home/index',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
-					console.log('success_/home/index----', res);
-					this.GLOBAL.successHttp(res);
-					
-					this.rank = res.data.data;
-					this.first = res.data.data;
-				  },
-				  fail: (res) => {
-					console.log('fail_/home/index---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-					uni.hideLoading();
 				  }
-				});
+				})
+				.then((res)=>{
+				  console.log('success_/home/index----', res);
+				  this.GLOBAL.successHttp(res);
+				  
+				  this.rank = res.data.data;
+				  this.first = res.data.data;
+				  
+				  uni.hideLoading();
+				})
+				.catch((res)=>{
+				  console.log('fail_/home/index---', res)
+				  this.GLOBAL.failHttp(res);
+				})
 			},
 			
 			getList(){
 				uni.showLoading({title: '加载中...'});
 				
-				uni.request({
-				  url: this.GLOBAL.domain + '/home/list',
-				  method: 'POST',
-				  dataType: 'json',
-				  header:{
-					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  data: {
-					pageSize: this.pageSize,
-					pageNum: this.currentPage,
-					userId: ''//如果为空 同部门全员日志;不为空 个人排名日志
-				  },
-				  async:true,
-				  withCredentials: true,  
-				  crossDomain: true,
-				  success: (res) => {
-					console.log('success_/home/list----', res);
-					this.GLOBAL.successHttp(res);
-					
-					console.log("load page 第" + (this.currentPage) +"页");
-					let list = res.data.data.list;
-					this.listData = this.isFirstPage ? list : this.listData.concat(list);
-					this.isFirstPage = false;
-					this.currentPage += 1;
-					this.hasNextPage = res.data.data.hasNextPage;
-					console.log("数据list:" + (this.listData.length) +"条");
-				  },
-				  fail: (res) => {
-					console.log('fail_/home/list---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-					uni.hideLoading();
-				  }
-				});
+				this.axios({
+					  url: this.GLOBAL.domain + '/home/list',
+					  method: 'POST',
+					  dataType: 'json',
+					  header:{
+						'content-type':'application/x-www-form-urlencoded'
+					  },
+					  data: this.$qs.stringify({
+						pageSize: this.pageSize,
+						pageNum: this.currentPage,
+						userId: ''//如果为空 同部门全员日志;不为空 个人排名日志
+					  })
+				})
+				 .then((res)=>{
+					  console.log('success_/home/list----', res);
+					  this.GLOBAL.successHttp(res);
+					  
+					  console.log("load page 第" + (this.currentPage) +"页");
+					  let list = res.data.data.list;
+					  this.listData = this.isFirstPage ? list : this.listData.concat(list);
+					  this.isFirstPage = false;
+					  this.currentPage += 1;
+					  this.hasNextPage = res.data.data.hasNextPage;
+					  console.log("数据list:" + (this.listData.length) +"条");
+					  
+					  uni.hideLoading();
+				  })
+				  .catch((res)=>{
+					  console.log('fail_/home/list----', res);
+					  this.GLOBAL.failHttp(res);
+				  })
 			},
 			
 			lower(){

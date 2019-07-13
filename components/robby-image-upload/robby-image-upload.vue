@@ -168,16 +168,19 @@
 				
 				//检查删除图片的服务器地址是否设置，如果设置则调用API，在服务器端删除该图片
 				if(this.serverUrlDeleteImage){
-					uni.request({
+					this.axios({
 						url: this.serverUrlDeleteImage,
 						method: 'GET',
-						data: {
+						data: this.$qs.stringify({
 							imagePath: deletedImagePath
-						},
-						success: res => {
-							console.log(res.data)
-						}
-					});
+						})
+					})
+					.then((res)=>{
+						console.log(res.data) 
+					})
+					.catch((res)=>{
+						  
+					})
 				}
 				
 				this.$emit('delete',{
@@ -339,7 +342,7 @@
 	}
 	
 	.imageUpload{
-		line-height: 130upx;
+		line-height: 140upx;
 		text-align: center;
 		font-size: 150upx;
 		color: #D9D9D9;

@@ -25,9 +25,18 @@
 			"style": {
 				// "navigationBarTitleText": "积分榜"
 				"navigationStyle":"custom",
+				"enablePullDownRefresh":true,
+				"navigationBarBackgroundColor":"#007AFF"
+			}
+		},
+		{
+			"path": "pages/jf/rank/perJFdetail/perJFdetail",
+			"style": {
+				"navigationBarTitleText": "积分详情",
 				"enablePullDownRefresh":true
 			}
-		}, {
+		},
+		{
 			"path": "pages/jf/personal/personal",
 			"style": {
 				"navigationBarTitleText": "个人中心"
@@ -195,15 +204,15 @@
 			}
 		},
 		{
-			"path": "pages/API/request-payment/request-payment",
+			"path": "pages/jf/publish/time/time",
 			"style": {
-				"navigationBarTitleText": "限时任务"
+				"navigationBarTitleText": "挑战任务"
 			}
 		},
 		{
-			"path": "pages/API/share/share",
+			"path": "pages/jf/publish/rush/rush",
 			"style": {
-				"navigationBarTitleText": "挑战任务"
+				"navigationBarTitleText": "抢单任务"
 			}
 		},
 		{
@@ -230,16 +239,28 @@
 			"style": {
 				"navigationBarTitleText": "表单"
 			}
+		},
+		{
+			"path": "pages/jf/luckyDraw/luckyDraw",
+			"style": {
+				"navigationBarTitleText": "积分抽奖"
+			}
+		},
+		{
+			"path": "pages/jf/luckyDraw/log/myPrize",
+			"style": {
+				"navigationBarTitleText": "我的奖品",
+				"enablePullDownRefresh":true
+			}
 		}
-		
 		
 		
 	],
 	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "Hello",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8",
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "",
+		"navigationBarBackgroundColor": "#4D96F5",
+		"backgroundColor": "#F7F7F7",
 		"backgroundColorTop": "#F4F5F6",
 		"backgroundColorBottom": "#F4F5F6",
 		"mp-alipay": {
@@ -253,24 +274,24 @@
 		"backgroundColor": "#F8F8F8",
 		"list": [{
 				"pagePath": "pages/jf/home/home",
-				"iconPath": "static/component.png",
-				"selectedIconPath": "static/componentHL.png",
+				"iconPath": "static/home.png",
+				"selectedIconPath": "static/home-active.png",
 				"text": "首页"
 			},
 			{
 				"pagePath": "pages/jf/work/workIndex",
-				"iconPath": "static/api.png",
-				"selectedIconPath": "static/apiHL.png",
+				"iconPath": "static/briefcase.png",
+				"selectedIconPath": "static/briefcase-active.png",
 				"text": "工作台"
 			}, {
 				"pagePath": "pages/jf/rank/rank",
-				"iconPath": "static/extui.png",
-				"selectedIconPath": "static/extuiHL.png",
+				"iconPath": "static/stats-bars.png",
+				"selectedIconPath": "static/stats-bars-active.png",
 				"text": "积分榜"
 			}, {
 				"pagePath": "pages/jf/personal/personal",
-				"iconPath": "static/template.png",
-				"selectedIconPath": "static/templateHL.png",
+				"iconPath": "static/user.png",
+				"selectedIconPath": "static/user-active.png",
 				"text": "个人中心"
 			}
 		]

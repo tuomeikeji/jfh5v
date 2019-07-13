@@ -52,6 +52,7 @@
 			}
 		},
 		onShow() {
+			this.getMenuId()
 			this.pullDown();
 		},
 		onLoad(){
@@ -80,75 +81,69 @@
 				}
 				
 			},
-			showList(){
-				uni.showLoading({title: '加载中...'});
-				uni.request({
+			getMenuId(){
+				//获取禁用标题（已申请项）
+				this.axios({
 				  url: this.GLOBAL.domain +'/userMenu/selectUserIdAndMenuId',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_selectUserIdAndMenuId禁用题目===', res);
 					this.GLOBAL.successHttp(res);
 					if(res.data.data){
 						this.menuIds = res.data.data.split(',');
-					}
-					
-				  },
-				  fail: (res) => {
+					}  
+				})
+				.catch((res)=>{
 					console.log('fail_selectUserIdAndMenuId禁用题目', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
-					uni.request({
-					  url: this.GLOBAL.domain + this.url,
-					  method: 'POST',
-					  dataType: 'json',
-					  header:{
-						'content-type':'application/x-www-form-urlencoded'
-					  },
-					  data: {
-						pageSize: this.pageSize,
-						pageNum: this.currentPage,
-						behaviorTitle: this.searchString
-					  },
-					  success: (res) => {
-						console.log('success_积分申报_'+this.url+'----', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.statusCode == 200) {
-							console.log("load page 第" + (this.currentPage) +"页");
-							let list = res.data.data.list;
-							this.listData = this.isFirstPage ? list : this.listData.concat(list);
-							this.isFirstPage = false;
-							this.currentPage += 1;
-							this.hasNextPage = res.data.data.hasNextPage;
-							console.log("数据列表：" + (this.listData.length) +"条");
-							
-							this.listData.forEach((item) => {
-							  if (this.menuIds.some((toItem) => toItem == item.behaviorId)) {
-								item.disabled = true
-							  } else {
-								item.disabled = false
-							  }
-							})
-						}
-					  },
-					  fail: (res) => {
-						console.log('fail_积分申报_'+this.url+'===', res)
-						this.GLOBAL.failHttp(res);
-					
-					  },
-					  complete: () => {
-						uni.hideLoading();
-						uni.stopPullDownRefresh();
-					  }
-					});
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
+			},
+			showList(){
+				uni.showLoading({title: '加载中...'});
 				
+				this.axios({
+				  url: this.GLOBAL.domain + this.url,
+				  method: 'POST',
+				  dataType: 'json',
+				  header:{
+					'content-type':'application/x-www-form-urlencoded'
+				  },
+				  data:this.$qs.stringify({pageSize: this.pageSize,pageNum: this.currentPage,behaviorTitle: this.searchString})
+				})
+				.then((res)=>{
+					console.log('success_积分申报_'+this.url+'----', res);
+					this.GLOBAL.successHttp(res);
+					if (res.data.code == 0) {
+						console.log("load page 第" + (this.currentPage) +"页");
+						let list = res.data.data.list;
+						this.listData = this.isFirstPage ? list : this.listData.concat(list);
+						this.isFirstPage = false;
+						this.currentPage += 1;
+						this.hasNextPage = res.data.data.hasNextPage;
+						console.log("数据列表：" + (this.listData.length) +"条");
+						
+						this.listData.forEach((item) => {
+						  if (this.menuIds.some((toItem) => toItem == item.behaviorId)) {
+							item.disabled = true
+						  } else {
+							item.disabled = false
+						  }
+						})
+					}
+					uni.hideLoading();
+					uni.stopPullDownRefresh();
+				})
+				.catch((res)=>{
+					console.log('fail_积分申报_'+this.url+'===', res)
+					this.GLOBAL.failHttp(res); 
+					uni.hideLoading();
+					uni.stopPullDownRefresh();
+				})
 			},
 			lower(){
 				 //滑到底端触发的函数
@@ -185,7 +180,7 @@
 			search(e) {
 				this.searchString = e;
 				this.pullDown();
-			},
+			}
 		}
 	}
 </script>

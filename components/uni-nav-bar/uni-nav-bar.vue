@@ -75,6 +75,10 @@
 				type: String,
 				default: '#FFFFFF'
 			},
+			navTextColor:{
+				type: String,
+				default: '#FFFFFF'
+			},
 			statusBar: {
 				type: Boolean,
 				default: false
@@ -107,11 +111,12 @@
 		position: relative;
 		width: 100%;
 		background-color: #fff;
-		overflow: hidden
+		overflow: hidden;
+		
 	}
 
 	.uni-navbar__content view {
-		line-height: 88upx
+		line-height: 88upx;color: #FFFFFF;
 	}
 
 	.uni-navbar__header {

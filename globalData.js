@@ -6,7 +6,7 @@ export default
   {
 	level:'',
 	id:'',
-	domain:'http://118.190.208.221:1002',
+	domain:'http://192.168.255.69:1002',
 	setUserLevel(level){
 		this.level = level;	
 	},
@@ -16,7 +16,7 @@ export default
 	successHttp(res){
 		//数据请求成功
 		var res = res;
-		if(res.statusCode != 200){
+		if(res.status != 200){
 			uni.showModal({
 				content: '访问出错，请重新登陆', confirmText: '确定',showCancel: false,
 				success() {

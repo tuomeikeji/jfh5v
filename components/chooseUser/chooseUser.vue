@@ -2,7 +2,7 @@
 <template>
 	<uni-drawer :visible="showDrawerFlag" mode="left">
 		<!-- <mSearch @search="search($event)" button="inside" placeholder="请输入您想搜索的人名"></mSearch> -->
-		<form @submit="formSubmit" @reset="reset">
+		<form @submit="formSubmit" @reset="formReset">
 			<scroll-view scroll-y="true" @scrolltolower="lower" :style="'height:'+winH+'px;'">
 				<view v-if="users.length>0">
 					<checkbox-group name="userCheckBox">
@@ -53,10 +53,12 @@
 				type:String,
 				default:''
 			},
-			// outCheckedUsers:{
-			// 	type:Array,
-			// 	default:[]
-			// }
+			checkedUserItem:{
+				type:Array,
+				default:() => {
+					return []
+				}
+			}
 		},
 		components: {
 			uniDrawer,
@@ -65,7 +67,6 @@
 			return {
 				reset:false,
 				users:[],
-				// checkedUsers:[],
 				
 				search:'',
 				pageSize:10,
@@ -80,50 +81,51 @@
 			this.getUsers();
 			this.getSystemInfoPage();
 		},
+		watch:{
+			checkedUserItem(value){
+				console.log('父组件中已选择的抄送人：===',value);
+				this.users.forEach((item) => {
+					if (value.some((toItem) => toItem.userId == item.userId)) {
+						item.checked = true
+					} else {
+						item.checked = false
+					}
+				})
+			}
+		},
 		methods:{
 			getUsers(){
 				//获取所有下属员工/同部门的人
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + this.getUsersUrl,
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 					pageSize: this.pageSize,
 					pageNum: this.currentPage,
 					search: this.search
-				  },
-				  success: (res) => {
-						this.GLOBAL.successHttp(res);
-						console.log('success_所有下属员工/同部门的人---', res)
-						if (res.data.code == 0) {
-							
-							console.log("load page 第" + (this.currentPage) +"页");
-							let list = res.data.data.list;
-							
-							// list.forEach((item) => {
-							//   if (this.outCheckedUsers.some((ckItem) => ckItem.userId == item.userId)) {
-							// 	item.checked = true
-							//   } else {
-							// 	item.checked = false
-							//   }
-							// })
-							
-							
-							this.users = this.isFirstPage ? list : this.users.concat(list);
-							this.isFirstPage = false;
-							this.currentPage += 1;
-							this.hasNextPage = res.data.data.hasNextPage;
-							
-							
-						}
-				  },
-				  fail: (res) => {
-						console.log('fail_所有下属员工/同部门的人', res);
-						this.GLOBAL.failHttp(res);
-				  }
+				  })
+				})
+				.then((res)=>{
+					
+					this.GLOBAL.successHttp(res);
+					console.log('success_所有下属员工/同部门的人---', res)
+					if (res.data.code == 0) {
+						
+						console.log("load page 第" + (this.currentPage) +"页");
+						let list = res.data.data.list;
+						this.users = this.isFirstPage ? list : this.users.concat(list);
+						this.isFirstPage = false;
+						this.currentPage += 1;
+						this.hasNextPage = res.data.data.hasNextPage; 
+					}
+				})
+				.catch((res)=>{
+					console.log('fail_所有下属员工/同部门的人', res);
+					this.GLOBAL.failHttp(res);  
 				})
 			},
 			lower(){
@@ -140,19 +142,21 @@
 			closeDrawer(){
 				this.$emit('toggleUserDrawer');
 			},
-			// checkAll(){
-			// 	this.users.checked = true;
-			// 	this.reset =true;
-			// },
+			checkAll(){
+				this.users.forEach((item) => {
+					item.checked = true
+				})
+				this.reset =true;
+			},
+			formReset(){
+				this.users.forEach((item) => {
+					item.checked = false
+				})
+				this.reset =false;
+			},
 			formSubmit(e){
 				console.log('chooseUser_submit，携带值为', e.detail.value);
 				this.$emit('getUsers',e.detail.value.userCheckBox);
-				
-				// let checkedUserInfo = e.detail.value.userCheckBox;
-				// checkedUserInfo.forEach((item) => {
-				//   item = JSON.parse(item);
-				//   this.checkedUsers.push(item)
-				// });
 				
 				this.closeDrawer();
 			}

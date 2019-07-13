@@ -12,7 +12,7 @@
 		</uni-swiper-dot>
 		<view class="pro_desc">
 			<view class="uni-title">{{details.goodName}}</view>
-			<view class="flex-space-between"><text class="uni-text" style="color:#DD4F43;">{{details.dhIntegral}}分</text><text class="uni-text">剩余{{details.goodKc}}件</text><text class="uni-text">已兑换{{details.ydhNum}}件</text></view>
+			<view class="flex-space-between"><text class="uni-text" style="color:#DD4F43;">{{details.dhIntegral}}分</text><text class="uni-text">剩余{{details.goodKc}}件</text><text class="uni-text">已兑换{{details.ydhNum ? details.ydhNum : 0}}件</text></view>
 		</view>
 		<view class="numberBox">
 			<text style="font-size: 32upx;">兑换数量：</text><text><uni-number-box :min="1" @change="change"/></text>
@@ -59,15 +59,17 @@
 			
 			this.userScore = options.userScore;
 			
-			uni.request({
+			this.axios({
 				//获取商品详情数据
 			  url: this.GLOBAL.domain + '/integralGoods/selectIntegralGoodsDetail/'+options.goodId,
 			  method: 'GET',
 			  dataType: 'json',
 			  header:{
 			  	'content-type':'application/x-www-form-urlencoded'
-			  },
-			  success: (res) => {
+			  }
+			})
+			
+			.then((res)=>{
 				console.log('success_商品详情----', res);
 				this.GLOBAL.successHttp(res);
 				
@@ -77,14 +79,12 @@
 				for(var i=0; i<goodLbImgArr.length;i++){
 					this.info.push({'url':goodLbImgArr[i]})
 				}
-				console.log("轮播图info--",this.info)
-			  },
-			  fail: (res) => {
+				console.log("轮播图info--",this.info) 
+			})
+			.catch((res)=>{
 				console.log('fail_商品详情---', res)
-				this.GLOBAL.failHttp(res);
-			  }
-			});
-			
+				this.GLOBAL.failHttp(res);  
+			})
 		},
 		methods:{
 			change(value){
@@ -95,7 +95,7 @@
 			confirmFun(){
 				let that = this;
 				//确认兑换
-				if(that.details.goodKc <= 0){
+				if(that.details.goodKc <= 0 || that.details.goodKc < that.number){
 					//库存不足
 					uni.showModal({
 						content:"此商品库存不足",
@@ -120,7 +120,7 @@
 							that.disabled = true;
 							that.loading = true;
 							
-							uni.request({
+							that.axios({
 								//兑换商品成功
 							  url: that.GLOBAL.domain + '/integralGoods/selectIntegralAddGoods/'+that.number,
 							  method: 'POST',
@@ -128,10 +128,11 @@
 							  header:{
 								'content-type':'application/x-www-form-urlencoded'
 							  },
-							  data: {
+							  data: that.$qs.stringify({
 								goodId: that.details.goodId
-							  },
-							  success: (res) => {
+							  })
+							})
+							.then((res)=>{
 								console.log('success_兑换商品----', res)
 								uni.showModal({
 									content:"兑换成功",
@@ -141,17 +142,18 @@
 									}
 								});
 								
-							  },
-							  fail: (res) => {
-								console.log('fail_兑换商品---', res);
-								that.GLOBAL.failHttp(res);
-							  },
-							  complete() {
 								that.disabled = false;
 								that.loading = false;
 								uni.hideLoading();
-							  }
-							});
+							})
+							.catch((res)=>{
+								console.log('fail_兑换商品---', res);
+								that.GLOBAL.failHttp(res); 
+								 
+								that.disabled = false;
+								that.loading = false;
+								uni.hideLoading();
+							})
 						}
 					}
 				});

@@ -1,8 +1,8 @@
 <!-- 积分商城 -->
 <template>
 	<view class="page">
-		<view class="topImage">
-			<image :src="topImage" mode="aspectFill" v-if="topImage.length>0"/>
+		<view class="topImage" v-show="topImage.length>0">
+			<image :src="topImage" mode="aspectFill"/>
 		</view>
 		<uni-list>
 			<uni-list-item :show-badge="true" badge-text="兑换记录" :title="'可用积分：'+userScore+'分'" @click="toLogs"/>
@@ -65,19 +65,21 @@
 	    methods: {
 	        loadProductList() {
 	            uni.showLoading({title: '加载中...'});
-	            uni.request({
+	            this.axios({
 	              url: this.GLOBAL.domain + '/integralGoods/selectIntegralGoodsList',
 	              method: 'POST',
 	              dataType: 'json',
 	              header:{
 	            	'content-type':'application/x-www-form-urlencoded'
 	              },
-	              data: {
+	              data: this.$qs.stringify({
 	            	pageSize: this.pageSize,
 	            	pageNum: this.currentPage,
-	              },
-	              success: (res) => {
-	            	console.log('success_GoodsList----', res);
+	              })
+				})
+				
+				.then((res)=>{
+					console.log('success_GoodsList----', res);
 	            	this.GLOBAL.successHttp(res);
 					
 	            	if (res.data.code == 0) {
@@ -87,17 +89,18 @@
 	            		this.isFirstPage = false;
 	            		this.currentPage += 1;
 	            		this.hasNextPage = res.data.data.hasNextPage
-	            	}
-	              },
-	              fail: (res) => {
-	            	console.log('fail_GoodsList---', res);
-					this.GLOBAL.failHttp(res);
-	              },
-	              complete: () => {
-	            	uni.hideLoading();
-	            	uni.stopPullDownRefresh();
-	              }
-	            });
+	            	} 
+					
+					uni.hideLoading();
+					uni.stopPullDownRefresh();
+				})
+				.catch((res)=>{
+					console.log('fail_GoodsList---', res);
+					this.GLOBAL.failHttp(res); 
+					 
+					uni.hideLoading();
+					uni.stopPullDownRefresh();
+				})
 			},
 			lower(){
 				 //滑到底端触发的函数
@@ -120,53 +123,53 @@
 			getTopImage(){
 				//获取顶部banner图
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/home/picture',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 					location: 2//location 0:首页，1:工作台，2：积分商城
-				  },
-				  success: (res) => {
+				  })
+				})
+				
+				.then((res)=>{
 					console.log('success_TopImage----', res);
 					this.GLOBAL.successHttp(res);
 					if(res.data.data.list.length > 0){
 						this.topImage = res.data.data.list[0].picUrl
-					}
+					} 
 					
-				  },
-				  fail: (res) => {
-					console.log('failTopImage---', res);
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
 					uni.hideLoading();
-				  }
-				});
+				})
+				.catch((res)=>{
+					console.log('failTopImage---', res);
+					this.GLOBAL.failHttp(res);  
+					
+					uni.hideLoading();
+				})
 			},
 			getUserScore(){
 				//获取用户可用积分
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/integralGoods/selectIntegralGoodsKYIntegral',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_用户可用积分----', res);
 					this.GLOBAL.successHttp(res);
-					this.userScore = res.data.data;
-					
-				  },
-				  fail: (res) => {
+					this.userScore = res.data.data; 
+				})
+				.catch((res)=>{
 					console.log('fail_用户可用积分---', res)
-					this.GLOBAL.failHttp(res);
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			toDetail(item){
 				//跳转到详情页
@@ -188,6 +191,6 @@
 
 <style>
 	.uni-badge{
-		font-size: 24upx;
+		font-size: 48upx;
 	}
 </style>

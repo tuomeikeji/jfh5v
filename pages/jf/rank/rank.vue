@@ -1,7 +1,7 @@
 <!-- tab栏::积分榜 -->
 <template>
-	<view class="uni-page-body">
-		<uni-nav-bar right-text="筛选" title="积分榜" @click-right="showDrawer"/>
+	<view class="uni-page-body" style="background-color: #FFFFFF;padding-bottom: 0;">
+		<uni-nav-bar right-text="筛选" title="积分榜" @click-right="showDrawer" :backgroundColor="navBackgroundColor""/>
 		<mSearch @search="search($event)" button="inside" placeholder="请输入要搜索的人名"></mSearch>
 		<uni-segmented-control :current="current" :values="items" :style-type="styleType" :active-color="activeColor" @clickItem="onClickTabItem" />
 		<view class="title">
@@ -16,7 +16,7 @@
 			<scroll-view scroll-y="true" @scrolltolower="lower" :style="'height:'+winH+'px;'">
 				<view v-if="rankList.length>0">
 					<view class="list" v-for="(item,index) in rankList" :key="index">
-						<view class="list-item">
+						<view class="list-item" @click="onClickList(item)">
 							<view class="brief">
 							  <text :class="'brief-col number number_'+index">{{index>2 ? index+1 : ""}}</text>
 							  <text class="brief-col"><image class="avatar" :src="item.userImg ? item.userImg : '/static/img/default_user_icon.png'"></image></text>
@@ -111,7 +111,8 @@
 				currentPage:1,
 				isFirstPage: true,
 				hasNextPage:true,
-				winH:''
+				winH:'',
+				navBackgroundColor:"#4D96F5"
 			}
 		},
 		onShow() {
@@ -126,6 +127,7 @@
 		onPullDownRefresh() {
 			this.pullDown();
 		},
+		
 		methods:{
 			onClickTabItem(index){
 				this.times = index + 1;
@@ -146,25 +148,26 @@
 
 				//获取排名列表
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/rank/index',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
-						pageSize: this.pageSize,
-						pageNum: this.currentPage,
-						deptId: this.deptId,
-						postId: this.postId,
-						typeId: this.typeId,
-						times: this.times,
-						spTime1: '',
-						spTime2: '',
-						search: this.searchString
-				  },
-				  success: (res) => {
+				  data: this.$qs.stringify({
+					pageSize: this.pageSize,
+					pageNum: this.currentPage,
+					deptId: this.deptId,
+					postId: this.postId,
+					typeId: this.typeId,
+					times: this.times,
+					spTime1: '',
+					spTime2: '',
+					search: this.searchString
+				  })
+				})
+				.then((res)=>{
 					console.log('success_/rank/index_排行榜----', res);
 					this.GLOBAL.successHttp(res);
 					
@@ -175,28 +178,29 @@
 					this.currentPage += 1;
 					this.hasNextPage = res.data.data.hasNextPage;
 					console.log("数据列表：" + (this.rankList.length) +"条");
-					
-				  },
-				  fail: (res) => {
+					 
+					 uni.hideLoading();
+					 uni.stopPullDownRefresh()
+				})
+				.catch((res)=>{
 					console.log('fail/rank/index---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
+					this.GLOBAL.failHttp(res); 
+					 
 					uni.hideLoading();
 					uni.stopPullDownRefresh()
-				  }
-				});
+				})
 			},
 			getRadioG_dept(){
 				//筛选页 radio组之radioG_Dept:部门
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/rank/selectDept',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_/rank/selectDept----', res);
 					this.GLOBAL.successHttp(res);
 					
@@ -211,24 +215,24 @@
 					  name: '默认',
 					  checked: 'true'
 					})
-					this.radioG_Dept = newData
-				  },
-				  fail: (res) => {
+					this.radioG_Dept = newData 
+				})
+				.catch((res)=>{
 					console.log('fail_/rank/selectDept---', res)
-					this.GLOBAL.failHttp(res);
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			getRadioG_post(){
 				//筛选页 radio组之radioG_Dept:职位
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/rank/selectPost',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_/rank/selectPost', res);
 					this.GLOBAL.successHttp(res);
 					
@@ -242,24 +246,24 @@
 					  name: '默认',
 					  checked: 'true'
 					})
-					this.radioG_Post = newData;
-				  },
-				  fail: (res) => {
+					this.radioG_Post = newData; 
+				})
+				.catch((res)=>{
 					console.log('fail_/rank/selectPost', res)
-					this.GLOBAL.failHttp(res);
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			getRadioG_type(){
 				//筛选页 radio组之radioG_Dept:积分类型
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/rank/selectType',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_/rank/selectType', res);
 					this.GLOBAL.successHttp(res);
 					
@@ -273,27 +277,52 @@
 					  name: '默认',
 					  checked: 'true'
 					});
-					this.radioG_type = newData;
-					
-				  },
-				  fail: (res) => {
+					this.radioG_type = newData; 
+				})
+				.catch((res)=>{
 					console.log('fail_/rank/selectType', res)
-					this.GLOBAL.failHttp(res);
-				  }
-				});
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			formSubmit: function(e) {
 				console.log('form发生了submit事件，携带数据为：' + JSON.stringify(e.detail.value));
 				for (var prop in e.detail.value) {
 				  switch (prop) {
 					case 'radio0':
-					  this.deptId = e.detail.value[prop]
+					  this.deptId = e.detail.value[prop];
+					  
+					  this.radioG_Dept.forEach((item) => {
+					    if (this.deptId == item.id) {
+							item.checked = true
+					    } else {
+							item.checked = false
+					    }
+					  })
+					  
 					  break;
 					case 'radio1':
-					  this.postId = e.detail.value[prop]
+					  this.postId = e.detail.value[prop];
+					  
+					  this.radioG_Post.forEach((item) => {
+					    if (this.postId == item.id) {
+					  		item.checked = true
+					    } else {
+					  		item.checked = false
+					    }
+					  })
+					  
 					  break;
 					case 'radio2':
-					  this.typeId = e.detail.value[prop]
+					  this.typeId = e.detail.value[prop];
+					  
+					  this.radioG_type.forEach((item) => {
+					    if (this.typeId == item.id) {
+					  		item.checked = true
+					    } else {
+					  		item.checked = false
+					    }
+					  });
+					  
 					  break;
 				  }
 				}
@@ -322,8 +351,13 @@
 			},
 			closeDrawer(){
 				this.showLeft = false;
+			},
+			onClickList(item){
+				var userId = item.userId
+				uni.navigateTo({
+					url:'/pages/jf/rank/perJFdetail/perJFdetail?userId='+userId
+				})
 			}
-			
 		}
 	}
 </script>

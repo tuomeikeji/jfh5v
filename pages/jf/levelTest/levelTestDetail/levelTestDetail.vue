@@ -1,9 +1,9 @@
 <!-- 水平考核详情 -->
 <template>
-	<view class="uni-page-body" style="padding-bottom: 40upx;">
+	<view class="uni-page-body" style="background-color: #FFFFFF;">
 		<form @submit="formSubmit" class="page-form">
 			<block v-for="(item,index) in listData" :key="index" class="list-block">
-			  <view class="section">
+			  <view class="section" style="padding-top: 20upx;">
 				<view class="section_title" style="padding:0 30upx;">
 				  <text class="uni-title">{{index+1}}、{{item.tName}}</text>
 				  <text class="uni-text">（答对得{{item.tIntegral}}分）</text>
@@ -54,33 +54,36 @@
 		methods: {
 			getList(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/Leveltitle/LevelTitleController/' + this.levelId,
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data:{
+				  data:this.$qs.stringify({
 					levelId :Number(this.levelId),
 					pageSize: '100',
 					pageNum: '1'
-				  },
-				  success: (res) => {
+				  })
+				})
+				.then((res)=>{
 					console.log('success_LevelDetails----', res);
 					this.GLOBAL.successHttp(res);
 					this.listData = res.data.data.list;
-				  },
-				  fail: (res) => {
+					
+					uni.hideLoading();
+				})
+				.catch((res)=>{
 					console.log("Fail_LevelDetails----", res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete() {
-				  	uni.hideLoading();
-				  }
+					this.GLOBAL.failHttp(res);  
+					
+					uni.hideLoading();
 				})
 			},
 			formSubmit: function(e) {
+				var that = this
+				
 				console.log('formSubmit----', e.detail.value)
 			
 				var radioGroupJson = e.detail.value
@@ -93,31 +96,35 @@
 				  var radioSingleAnswer = {"tEnd":tIndex,"tId":tId}
 				  radioGroupArr.push(radioSingleAnswer)
 				  
-				  this. answerArr = radioGroupArr
+				  that. answerArr = radioGroupArr
 				}
 				
-				console.log('最后传参：','modifyArr:',this.answerArr,',levelId:',this.levelId,',shenQingFangShi:',this.shenQingFangShi)
+				console.log('最后传参：','modifyArr:',that.answerArr,',levelId:',that.levelId,',shenQingFangShi:',that.shenQingFangShi)
 				
-				this.loading = true;
-				this.disabled = true;
+				that.loading = true;
+				that.disabled = true;
 				uni.showLoading({
 					title:"提交中"
 				})
-				uni.request({
+				that.axios({
 				  url: this.GLOBAL.domain + '/Leveltitle/servehotselectiveajax',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
-				 	'content-type':'application/json;charsetset=UTF-8'
+					'content-type':'application/json'
+					// 'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data:JSON.stringify({
-					modifyArr: this.answerArr,
-					levelId: this.levelId,
-					shenQingFangShi: this.shenQingFangShi
-				  }),
-				  success: (res) => {
-					console.log('successApp----', res);
-					this.GLOBAL.successHttp(res);
+				  // JSON.stringify
+				  data:that.$qs.stringify(
+					{
+						"modifyArr": that.answerArr,
+						"levelId": that.levelId,
+						"shenQingFangShi": that.shenQingFangShi
+					},{arrayFormat: 'indices'})
+				})
+				.then((res)=>{
+					console.log('success_levelTest_提交测试----', res);
+					that.GLOBAL.successHttp(res);
 					
 					if(res.data.code == 0){
 						uni.showModal({
@@ -134,19 +141,19 @@
 							showCancel:false,
 							content:res.data.msg,
 						})
-					}
+					} 
 					
-					
-				  },
-				  fail: (res) => {
-					console.log("httpRequestFailApp----", res)
-					var content = JSON.stringify(res); switch (res.error) {case 13: content = '连接超时'; break; case 12: content = '网络出错'; break; case 19: content = '访问拒绝'; } dd.alert({content: content, buttonText: '确定'});
-				  },
-				  complete: () => {
 					uni.hideLoading();
-					this.disabled = false;
-					this.loading = false;
-				  }
+					that.disabled = false;
+					that.loading = false;
+				})
+				.catch((res)=>{
+					console.log("fail_levelTest_提交测试---", res);
+					that.GLOBAL.failHttp(res);
+					
+					uni.hideLoading();
+					that.disabled = false;
+					that.loading = false;
 				})
 			}
 		}
@@ -164,3 +171,7 @@
 	}
 	
 </style>
+	
+	<!-- that.axios.post(that.GLOBAL.domain + '/Leveltitle/servehotselectiveajax',that.$qs.stringify({
+		"data":JSON.stringify({modifyArr: that.answerArr,levelId: that.levelId,shenQingFangShi: that.shenQingFangShi})
+	}),{"headers":{'content-type':'application/json'}}}) -->

@@ -1,6 +1,6 @@
 <!--工作台::我发起的 -->
 <template>
-	<view class="page">
+	<view class="uni-page-body" style="padding-bottom: 0;">
 		<uni-segmented-control :current="current" :values="items" :style-type="styleType" :active-color="activeColor" @clickItem="onClickTabItem" />
 		<view class="content">
 			<scroll-view scroll-y="true" @scrolltolower="lower" :style="'height:'+winH+'px;'">
@@ -70,40 +70,42 @@
 		methods:{
 			 getList(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/work/selectMyFq',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 					pageSize: this.pageSize,
 					pageNum: this.currentPage,
 					status: this.spstatus, // tab栏审批未审批
 					search: this.search
-				  },
-				  success: (res) => {
+				  })
+				})
+				.then((res)=>{
 					console.log('success_我发起的列表----', res);
 					this.GLOBAL.successHttp(res);
-					if (res.statusCode == 200) {
+					if (res.data.code == 0) {
 						console.log("load page 第" + (this.currentPage) +"页");
 						let list = res.data.data.list;
 						this.listData = this.isFirstPage ? list : this.listData.concat(list);
 						this.isFirstPage = false;
 						this.currentPage += 1;
 						this.hasNextPage = res.data.data.hasNextPage
-					}
-				  },
-				  fail: (res) => {
-					console.log('fail_我发起的列表---', res);
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
+					} 
+					
 					uni.hideLoading();
 					uni.stopPullDownRefresh();
-				  }
-				});
+				})
+				.catch((res)=>{
+					console.log('fail_我发起的列表---', res);
+					this.GLOBAL.failHttp(res); 
+					 
+					 uni.hideLoading();
+					 uni.stopPullDownRefresh();
+				})
 			 },
 			 lower(){
 				 //滑到底端触发的函数

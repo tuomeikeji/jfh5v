@@ -1,6 +1,6 @@
 <!-- 个人中心 -->
 <template>
-	<view class="uni-page-body">
+	<view class="uni-page-body" :style="'height:'+winH+'px;'">
 		<view class="uni-list">
 			<view class="uni-list-cell">
 				<view class="uni-media-list">
@@ -14,13 +14,13 @@
 							<view class="uni-text-small"><text style="padding-right: 80upx;">积分：{{userData.amount}} 分</text><text>基础积分：{{userData.base}} 分</text></view>
 						</view>
 						<view class="editIcon">
-							<uni-icon type="compose" color="#8f8f94" size="35" @click="gotoEdit" />
+							<uni-icon type="compose" color="#4D96F5" size="35" @click="gotoEdit" />
 						</view>
 					</view>
 				</view>
 			</view>
 		</view>
-		<button @click="logout" type="primary" class="button-form">退出登录</button>
+		<button @click="logout" type="primary" class="button-form" style="margin-top:100upx;">退出登录</button>
 	</view>
 </template>
 
@@ -33,36 +33,38 @@
 		data(){
 			return {
 				showImg:true,
-				userData:{}
+				userData:{},
+				winH:''
 			}
 		},
 		onShow(){
 			this.getUserData();
+			this.getSystemInfoPage()
 		},
 		methods:{
 			getUserData(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/personal/indexHead',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 				  	'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_/personal/indexHead----', res);
 					this.GLOBAL.successHttp(res);
 					this.userData = res.data.data;
-					
-				  },
-				  fail: (res) => {
+					 
+					 uni.hideLoading();
+				})
+				.catch((res)=>{
 					console.log('fail/personal/indexHead---', res)
-					this.GLOBAL.failHttp(res);
-				  },
-				  complete: () => {
+					this.GLOBAL.failHttp(res);  
+					
 					uni.hideLoading();
-				  }
-				});
+				})
 			},
 			drawEchart(){
 				// /personal/indexEcharts
@@ -84,7 +86,14 @@
 				uni.navigateTo({
 					url:"/pages/jf/personal/changeAvatar/changeAvatar"
 				})
-			}
+			},
+			getSystemInfoPage() {
+				uni.getSystemInfo({
+				  success: (res) => {
+					this.winH=res.windowHeight
+				  }
+				})
+			 },
 		}
 	}
 </script>
@@ -94,6 +103,13 @@
 		position: absolute;
 		top: 0;
 		right: 0;
+	}
+	.uni-list{
+		width: 90%;
+		margin: 0 auto;
+		border-radius: 8upx;
+		-webkit-border-radius: 8upx;
+		margin-top: 20upx;
 	}
 </style>
 <!-- 

@@ -35,6 +35,7 @@
 		},
 		onShow() {
 			this.pullDown();
+			this.getMenuIds()
 		},
 		onLoad(){
 			this.getSystemInfoPage();
@@ -43,77 +44,73 @@
 			this.pullDown();
 		},
 		methods: {
-			getList(){
-				uni.showLoading({title: '加载中...'});
-				uni.request({
+			getMenuIds(){
+				//获取已考核题目集合
+				this.axios({
 				  url: this.GLOBAL.domain +'/AssessmentState/AssessmentStateController', //已考核题目集合
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
-				  },
-				  success: (res) => {
+				  }
+				})
+				.then((res)=>{
 					console.log('success_禁用题目===', res);
 					this.GLOBAL.successHttp(res);
 					
-					this.menuIds = res.data.data.list
-				  },
-				  fail: (res) => {
+					this.menuIds = res.data.data.list 
+				})
+				.catch((res)=>{
 					console.log('fail_禁用题目', res)
 					this.GLOBAL.failHttp(res);
+				})
+			},
+			getList(){
+				uni.showLoading({title: '加载中...'});
+				this.axios({
+				  url: this.GLOBAL.domain +'/Levelass/LevelAssController',
+				  method: 'POST',
+				  dataType: 'json',
+				  header:{
+					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  complete: () => {
-					uni.request({
-					  url: this.GLOBAL.domain +'/Levelass/LevelAssController',
-					  method: 'POST',
-					  dataType: 'json',
-					  header:{
-						'content-type':'application/x-www-form-urlencoded'
-					  },
-					  data: {
-						pageSize: this.pageSize,
-						pageNum: this.currentPage,
-					  },
-					  success: (res) => {
-						console.log('success_LevelAssController_考核题目', res);
-						this.GLOBAL.successHttp(res);
-						
-						if (res.data.code == 0) {
-							console.log("load page 第" + (this.currentPage) +"页");
-							let list = res.data.data.list;
-							
-							list.forEach((item) => {
-							  if (this.menuIds.some((toItem) => toItem.levelId == item.levelId)) {
-								item.disabled = true;
-								item.state = 1
-							  } else {
-								item.disabled = false
-								item.state = 0
-							  }
-							})
-							
-							
-							this.listData = this.isFirstPage ? list : this.listData.concat(list);
-							this.isFirstPage = false;
-							this.currentPage += 1;
-							this.hasNextPage = res.data.data.hasNextPage;
-							console.log("数据列表：" + (this.listData.length) +"条");
-							
-							
-						}
-					  },
-					  fail: (res) => {
-						console.log('fail__LevelAssController_考核题目', res)
-						this.GLOBAL.failHttp(res);
+				  data: this.$qs.stringify({
+					pageSize: this.pageSize,
+					pageNum: this.currentPage,
+				  })
+				})
+				.then((res)=>{
+				  	console.log('success_LevelAssController_考核题目', res);
+					this.GLOBAL.successHttp(res);
 					
-					  },
-					  complete: () => {
+					if (res.data.code == 0) {
+						console.log("load page 第" + (this.currentPage) +"页");
+						let list = res.data.data.list;
+						
+						list.forEach((item) => {
+						  if (this.menuIds.some((toItem) => toItem.levelId == item.levelId)) {
+							item.disabled = true;
+							item.state = 1
+						  } else {
+							item.disabled = false
+							item.state = 0
+						  }
+						})
+						
+						this.listData = this.isFirstPage ? list : this.listData.concat(list);
+						this.isFirstPage = false;
+						this.currentPage += 1;
+						this.hasNextPage = res.data.data.hasNextPage;
+						console.log("数据列表：" + (this.listData.length) +"条");
+						 
 						uni.hideLoading();
-						uni.stopPullDownRefresh();
-					  }
-					});
-				  }
-				});
+						uni.stopPullDownRefresh()
+					}
+				})
+				.catch((res)=>{
+				  	console.log('fail__LevelAssController_考核题目', res)
+					this.GLOBAL.failHttp(res);  
+				})
 			},
 			lower(){
 				 //滑到底端触发的函数

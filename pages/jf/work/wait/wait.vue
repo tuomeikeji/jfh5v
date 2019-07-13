@@ -73,22 +73,23 @@
 		methods:{
 			 getList(){
 				uni.showLoading({title: '加载中...'});
-				uni.request({
+				this.axios({
 				  url: this.GLOBAL.domain + '/approversPel/selectApproversList',
 				  method: 'POST',
 				  dataType: 'json',
 				  header:{
 					'content-type':'application/x-www-form-urlencoded'
 				  },
-				  data: {
+				  data: this.$qs.stringify({
 					pageSize: this.pageSize,
 					pageNum: this.currentPage,
 					status: this.spstatus, // tab栏审批未审批
 					search: this.searchString
-				  },
-				  success: (res) => {
+				  }),
+				})
+				.then((res)=>{
 					console.log('success_待我审批列表----', res);
-					// this.GLOBAL.successHttp(res);
+					this.GLOBAL.successHttp(res);
 					if (res.data.code == 0) {
 						console.log("load page 第" + (this.currentPage) +"页");
 						let list = res.data.data.list;
@@ -96,17 +97,18 @@
 						this.isFirstPage = false;
 						this.currentPage += 1;
 						this.hasNextPage = res.data.data.hasNextPage
-					}
-				  },
-				  fail: (res) => {
-					console.log('fail_待我审批列表---', res);
+					} 
 					
-				  },
-				  complete: () => {
 					uni.hideLoading();
 					uni.stopPullDownRefresh();
-				  }
-				});
+				})
+				.catch((res)=>{
+					console.log('fail_待我审批列表---', res);  
+					this.GLOBAL.failHttp(res)
+					
+					uni.hideLoading();
+					uni.stopPullDownRefresh();
+				})
 			 },
 			 lower(){
 				 //滑到底端触发的函数

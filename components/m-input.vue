@@ -118,11 +118,12 @@
 	}
 
 	.m-input-input {
-		flex: 1;
-		width: 100%;
+		/* flex: 1; */
+		width: 90%;
+		padding: 30upx 0;
 	}
 
 	.m-input-icon {
-		width: 20px;
+		width: 20upx;
 	}
 </style>

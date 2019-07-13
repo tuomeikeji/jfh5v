@@ -5,6 +5,7 @@
 				<view v-if="!item.seize" class="uni-grid-item__content">
 					<image :src="item.image" class="uni-grid-item-image" />
 					<text class="uni-grid-item-text">{{ item.text }}</text>
+					<!-- <view class="badge" v-show="showBadge"><uni-badge :text="badgeNum" type="error"/></view> -->
 				</view>
 			</view>
 		</view>
@@ -12,7 +13,11 @@
 </template>
 
 <script>
+	import uniBadge from '@/components/uni-badge/uni-badge.vue'
 	export default {
+		components: {
+			uniBadge
+		},
 		name: 'UniGrid',
 		props: {
 			options: {
@@ -36,7 +41,15 @@
 			showBorder: { // 是否显示border，如果为false，showOutBorder无效
 				type: Boolean,
 				default: true
-			}
+			},
+			// showBadge:{  //是否显示角标
+			// 	type: Boolean,
+			// 	default: true
+			// },
+			// badgeNum:{
+			// 	type: Number,
+			// 	default: 0
+			// }
 		},
 		data() {
 			return {}
@@ -205,5 +218,11 @@
 	.uni-grid-item-oblong .uni-grid-item-text {
 		margin-top: 0;
 		margin-left: 12upx
+	}
+	
+	.badge{
+		position: absolute;
+		top: 10upx;
+		left: 10upx;
 	}
 </style>
